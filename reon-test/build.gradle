@@ -4,14 +4,8 @@ compileJava {
     options.compilerArgs << '-proc:none'
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
-    compile (project(':reon-api-java')) {
-        exclude group: 'com.google.android', module: 'android'
-    }
+    compile (project(':reon-api-java'))
 	compile (project(':reon-api-android')) {
 		exclude group: 'com.google.android', module: 'android'
 	}
