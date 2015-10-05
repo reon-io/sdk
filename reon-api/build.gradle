@@ -1,0 +1,46 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+
+group = projectIds.group
+version = projectIds.version
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:1.0.0'
+    }
+}
+
+dependencies {
+    compile project(':reon-api-java')
+	compile project(':reon-api-android')
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion '19.1.0'
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 19
+    }
+}
+
+publishing {
+    publications {
+        plugin(MavenPublication) {
+            // TODO is there a better way for that?
+            def aarName = "build/outputs/aar/${artifactId}-${project.version}.aar"
+            artifact file(aarName)
+            artifactId 'mywebio-api'
+        }
+    }
+}
+
+publishToMavenLocal.dependsOn 'build'
+
+repositories {
+    mavenCentral()
+}

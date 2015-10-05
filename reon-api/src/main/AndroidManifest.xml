@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.reon.api" >
+
+    <uses-permission android:name="io.reon.server.permission.REQUEST" />
+
+    <application>
+        <service
+            android:name="io.reon.Service"
+            android:exported="true"
+            android:permission="io.reon.server.permission.REQUEST">
+        </service>
+    </application>
+
+</manifest>

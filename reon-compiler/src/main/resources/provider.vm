@@ -1,0 +1,63 @@
+
+/*
+ * GENERATED FILE
+ */
+package io.reon;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import io.reon.api.*;
+import io.reon.util.JSONUtils;
+import io.reon.http.Request;
+import io.reon.http.Response;
+
+public class $provider.generatedClassName {
+	public final static String CONTENT = "content://";
+	public final static String PROVIDER = "$provider.name";
+
+#if ( $provider.hasGetMethod() )
+	@GET("/$provider.name/*path?:projection&:selection&:values&:order&:range")
+	public Response doGet(Context ctx, String path, JSONArray projection, String selection, JSONArray values, String order, JSONArray range) {
+		String[] strProjection = JSONUtils.jsonArrayToStringArray(projection);
+		String[] strValues = JSONUtils.jsonArrayToStringArray(values);
+		Cursor cursor = ctx.getContentResolver().query(Uri.parse(CONTENT + PROVIDER + "/" + path), strProjection, selection, strValues, order);
+		return Response.ok().withBody(JSONUtils.cursorToJSONObject(cursor, range));
+	}
+#end
+
+#if ( $provider.hasPutMethod() )
+	@PUT("/$provider.name/*path?:selection&:values")
+	public Response doPut(Context ctx, String path, String selection, JSONArray values, Request req) throws JSONException {
+		String[] strValues = JSONUtils.jsonArrayToStringArray(values);
+		ContentValues vals = JSONUtils.jsonToValues(req.getBodyAsJSON());
+		int count = ctx.getContentResolver().update(Uri.parse(CONTENT + PROVIDER + "/" + path), vals, selection, strValues);
+		return Response.ok().withBody(new JSONObject().put("count", count));
+	}
+#end
+
+#if ( $provider.hasPostMethod() )
+	@POST("/$provider.name/*path")
+	public Response doPost(Context ctx, String path, Request req) throws JSONException {
+		ContentValues vals = JSONUtils.jsonToValues(req.getBodyAsJSON());
+		Uri u = ctx.getContentResolver().insert(Uri.parse(CONTENT + PROVIDER + "/" + path), vals);
+		return Response.ok().withBody(new JSONObject().put("uri", u.toString().replace(CONTENT, "/"+ctx.getPackageName()+"/")));
+	}
+#end
+
+#if ( $provider.hasDeleteMethod() )
+	@DELETE("/$provider.name/*path?:selection&:values=[]")
+	public Response doDelete(Context ctx, String path, String selection, JSONArray values) throws JSONException {
+		String[] strValues = JSONUtils.jsonArrayToStringArray(values);
+		int count = ctx.getContentResolver().delete(Uri.parse(CONTENT + PROVIDER + "/" + path), selection, strValues);
+		return Response.ok().withBody(new JSONObject().put("count", count));
+	}
+#end
+
+}

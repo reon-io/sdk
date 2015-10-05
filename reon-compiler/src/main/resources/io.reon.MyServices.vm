@@ -1,0 +1,16 @@
+#* @vtlvariable name="endpoints" type="java.util.List<io.reon.processor.model.ParsedMethod>" *#
+#* @vtlvariable name="filters" type="java.util.List<io.reon.processor.model.ParsedFilter>" *#
+package io.reon;
+
+import io.reon.http.Method;
+
+public class MyServices {
+	static {
+#foreach( $parsedMethod in $endpoints )
+		Service.addEndpointInfo(new Endpoint.Info(Method.$parsedMethod.httpMethod, "$parsedMethod.httpUri", ${parsedMethod.generatedClassName}.class));
+#end
+#foreach( $parsedFilter in $filters )
+		Service.addFilter(new ${parsedFilter.generatedClassName}());
+#end
+	}
+}

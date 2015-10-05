@@ -1,0 +1,95 @@
+#* @vtlvariable name="parsedMethod" type="io.reon.processor.model.ParsedMethod" *#
+/*
+ * GENERATED FILE
+ */
+package io.reon;
+
+import java.io.*;
+
+import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.reon.http.*;
+
+public class $parsedMethod.generatedClassName extends Endpoint {
+
+	public ${parsedMethod.generatedClassName}(WebContext ctx) {
+		super(ctx);
+	}
+
+	protected Method httpMethod() {
+		return Method.$parsedMethod.httpMethod;
+	}
+
+	protected String originalPath() {
+		return "$parsedMethod.httpUri";
+	}
+
+	@Override
+	public String produces() {
+		return "${parsedMethod.produces}";
+	}
+
+	private FormalParam[] formalParams() {
+		FormalParam[] formalParams =  new FormalParam[$parsedMethod.parsedParams.size()];
+#foreach( $param in $parsedMethod.parsedParams )
+		formalParams[$param.id] = new FormalParam($param.id, "$param.typeName", "$param.name");
+#end
+		return formalParams;
+	}
+
+#set( $generatedPattern = $parsedMethod.generatedPattern )
+
+	private Map<String, Integer> groupMap() {
+		Map<String, Integer> groupMap = new HashMap<String, Integer>();
+#foreach( $gm in $generatedPattern.groupMappings )
+		groupMap.put("$gm.name", $gm.idx);
+#end
+		return groupMap;
+	}
+
+	private Map<String, String> defaulQueryParams() {
+		Map<String, String> defaultQueryParams = new HashMap<String, String>();
+#foreach( $dqp in $parsedMethod.defaultQueryParams)
+		defaultQueryParams.put("$dqp.name", "$dqp.val");
+#end
+		return defaultQueryParams;
+	}
+
+	private Pattern pattern = Pattern.compile("$esc.java($generatedPattern.pattern)");
+
+	@Override
+	protected Pattern getPattern() {
+		return pattern;
+	}
+
+#if ($parsedMethod.servicePresent)
+	@Override
+	protected String getServiceName() {
+		return "$parsedMethod.service.parameterName";
+	}
+
+	@Override
+	protected Object getServiceObject() {
+#if ($parsedMethod.service.remote)
+		return getWebContext().bindService(android.content.ComponentName.unflattenFromString("$parsedMethod.service.componentName");
+#else
+		return getWebContext().bindService(new android.content.ComponentName(getContext(), ${parsedMethod.service.componentName}.class));
+#end
+	}
+#end
+
+	@Override
+	public Response invoke(String uri, Request request) throws HttpException, IOException {
+		try {
+			ActualParam[] ap = actualParams(uri, request, formalParams(), defaulQueryParams(), groupMap(), getWebContext().getContext());
+			final ${parsedMethod.destMethodRetType} respFromUserCode = new ${parsedMethod.destClass}().${parsedMethod.destMethod}($parsedMethod.paramsJavaSrc);
+			return Response.ok().withBody(respFromUserCode).withId(request.getId());
+		} catch (Throwable e) {
+			if (e instanceof HttpException) throw (HttpException) e;
+			if (e instanceof IOException) throw (IOException) e;
+			throw new HttpInternalErrorException(e.getMessage(), e); // wrap up
+		}
+	}
+}
