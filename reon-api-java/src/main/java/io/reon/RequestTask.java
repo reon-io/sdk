@@ -1,11 +1,11 @@
 package io.reon;
 
-import android.net.LocalSocket;
-import android.util.Log;
-
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.PushbackInputStream;
+import java.io.StringWriter;
 
+import io.reon.http.Connection;
 import io.reon.http.HttpBadRequestException;
 import io.reon.http.HttpException;
 import io.reon.http.HttpInternalErrorException;
@@ -14,25 +14,31 @@ import io.reon.http.Response;
 
 public class RequestTask implements Runnable {
 
-	private static final String TAG = RequestTask.class.getName();
+	private final Connection conn;
 
-	private final LocalSocket socket;
 	private final RequestProcessor processor;
 
-	public RequestTask(LocalSocket socket, RequestProcessor processor) {
-		this.socket = socket;
+	public RequestTask(Connection socket, RequestProcessor processor) {
+		this.conn = socket;
 		this.processor = processor;
 	}
 
 	private static final int BUFFER_SIZE = 512;
 
+	private static String getStackTrace(final Throwable throwable) {
+		final StringWriter sw = new StringWriter();
+		final PrintWriter pw = new PrintWriter(sw, true);
+		throwable.printStackTrace(pw);
+		return sw.getBuffer().toString();
+	}
+
 	private void writeErrorResponse(String requestId, HttpException ex) {
 		try {
-			ResponseWriter rw = new ResponseWriter(socket.getOutputStream());
-			rw.write(Response.error(ex).withId(requestId).withBody(preformatted(Log.getStackTraceString(ex))));
+			ResponseWriter rw = new ResponseWriter(conn.getOutputStream());
+			rw.write(Response.error(ex).withId(requestId).withBody(preformatted(getStackTrace(ex))));
 			rw.close();
 		} catch (IOException err) {
-			Log.e(TAG, "Error while writing error response " + err, err);
+			err.printStackTrace();
 		}
 	}
 
@@ -47,7 +53,7 @@ public class RequestTask implements Runnable {
 		try {
 			PushbackInputStream inputStream;
 			try {
-				inputStream = new PushbackInputStream(socket.getInputStream(), BUFFER_SIZE);
+				inputStream = new PushbackInputStream(conn.getInputStream(), BUFFER_SIZE);
 			} catch (IOException e) {
 				throw new HttpBadRequestException(e.getMessage(), e);
 			}
@@ -67,7 +73,6 @@ public class RequestTask implements Runnable {
 				} else keepAlive = false;
 			}
 		} catch (HttpException e) {
-			Log.e(TAG, "Error " + e, e);
 			writeErrorResponse(requestId, e);
 		} catch (IOException e) {
 			writeErrorResponse(requestId, new HttpInternalErrorException(e.getMessage(), e));
@@ -77,7 +82,7 @@ public class RequestTask implements Runnable {
 	}
 
 	private void writeResponse(Response response) throws IOException {
-		ResponseWriter rw = new ResponseWriter(socket.getOutputStream());
+		ResponseWriter rw = new ResponseWriter(conn.getOutputStream());
 		try {
 			rw.write(response);
 		} finally {
@@ -107,16 +112,18 @@ public class RequestTask implements Runnable {
 	}
 
 	private void closeConnection() {
-		if (socket != null) {
+		if (conn != null) {
 			try {
-				socket.getOutputStream().close();
+				conn.getOutputStream().close();
 			} catch (IOException e) {
 				// ignore any errors when closing output stream
+				e.printStackTrace();
 			}
 			try {
-				socket.close();
+				conn.close();
 			} catch (IOException e) {
-				Log.e(TAG, "Error occurred while closing connection " + e);
+				// ignore
+				e.printStackTrace();
 			}
 		}
 	}

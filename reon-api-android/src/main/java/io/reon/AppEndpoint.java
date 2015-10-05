@@ -4,12 +4,15 @@ import android.content.Context;
 import io.reon.http.HttpServiceUnavailableException;
 
 public abstract class AppEndpoint extends Endpoint {
+	private final Context ctx;
+
 	public AppEndpoint(WebAppContext context) {
 		super(context);
+		ctx = context.getContext();
 	}
 
 	protected Context getContext() {
-		return ((WebAppContext)getWebContext()).getContext();
+		return ctx;
 	}
 
 	@Override

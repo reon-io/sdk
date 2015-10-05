@@ -12,7 +12,7 @@ import io.reon.http.Response;
 
 public class AssetEndpoint extends AppEndpoint {
 
-	public static final String MYWEB_ASSETS_DIR = "reon";
+	public static final String REON_ASSETS_DIR = "reon";
 
 	public AssetEndpoint(WebAppContext ctx) {
 		super(ctx);
@@ -35,15 +35,12 @@ public class AssetEndpoint extends AppEndpoint {
 
 	@Override
 	public boolean match(Method method, String uri) {
-//		Log.d("AssetEndpoint", "trying to match: " + uri);
 		if (Method.GET == method) {
 			AssetManager assetManager = getContext().getAssets();
 			try {
-				assetManager.open(MYWEB_ASSETS_DIR + uri).close();
-//				Log.d("AssetEndpoint", "matched: " + uri);
+				assetManager.open(REON_ASSETS_DIR + uri).close();
 				return true;
 			} catch (IOException e) {
-//				Log.d("AssetEndpoint", "not matched: " + uri + " (" + e + ")");
 				return false;
 			}
 		}
@@ -53,7 +50,7 @@ public class AssetEndpoint extends AppEndpoint {
 	@Override
 	public Response invoke(String uri, Request request) throws IOException {
 		AssetManager assetManager = getContext().getAssets();
-		InputStream is = assetManager.open(MYWEB_ASSETS_DIR + uri);
+		InputStream is = assetManager.open(REON_ASSETS_DIR + uri);
 		long length = getWebContext().getAssetInfo().getAssetLength(uri);
 		return Response.ok().withId(request.getId()).withContentTypeFrom(uri).withLength(length).withBody(is);
 	}

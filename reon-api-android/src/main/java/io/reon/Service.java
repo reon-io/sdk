@@ -26,7 +26,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	private static List<Filter> filterList = new ArrayList<Filter>();
 
 	static {
-		addEndpointInfo(new Endpoint.Info(Method.GET, AppInfoEndpoint.SERVICES_JSON, AppInfoEndpoint.class));
+		addEndpointInfo(new Endpoint.Info(Method.GET, AppServicesEndpoint.SERVICES_JSON, AppServicesEndpoint.class));
 		addEndpointInfo(new Endpoint.Info(Method.GET, "/", AssetEndpoint.class));
 		try {
 			// run static initializers for generated classes
@@ -79,7 +79,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		Log.d(TAG, "Creating myweb service");
+		Log.d(TAG, "Creating reon service");
 		if (requestProcessor == null) {
 			requestProcessor = new RequestProcessor(createEndpoints(), getFilters());
 		}
@@ -87,7 +87,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "Destroying myweb service");
+		Log.d(TAG, "Destroying reon service");
 		TempServiceConnection.terminateAll();
 		if (localServer != null) {
 			localServer.shutdown();

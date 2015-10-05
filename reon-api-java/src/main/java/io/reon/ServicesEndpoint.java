@@ -12,12 +12,12 @@ import io.reon.http.Method;
 import io.reon.http.Request;
 import io.reon.http.Response;
 
-public class AppInfoEndpoint extends AppEndpoint {
+public abstract class ServicesEndpoint extends Endpoint {
 	public static final String SERVICES_JSON = "/services.json";
 
 	private JSONObject servicesJson = null;
 
-	public AppInfoEndpoint(WebAppContext ctx) {
+	public ServicesEndpoint(WebContext ctx) {
 		super(ctx);
 	}
 
@@ -36,14 +36,9 @@ public class AppInfoEndpoint extends AppEndpoint {
 		return pattern;
 	}
 
-	private String pkgName() {
-		return getContext().getPackageName();
-	}
+	protected abstract String pkgName();
 
-	private String appName() {
-		CharSequence charSequence = getContext().getApplicationInfo().loadLabel(getContext().getPackageManager());
-		return charSequence.toString();
-	}
+	protected abstract String appName();
 
 	private JSONObject createServicesJson() throws JSONException {
 		JSONObject json = new JSONObject();

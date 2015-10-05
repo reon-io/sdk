@@ -51,7 +51,7 @@ public class LocalServer implements Runnable {
 			try {
 				LocalSocket ls = serverSocket.accept();
 //				Log.d(LOG_TAG, "new connection on local socket");
-				RequestTask worker = new RequestTask(ls, context.getRequestProcessor());
+				RequestTask worker = new RequestTask(new LocalSocketConnection(ls), context.getRequestProcessor());
 				executor.execute(worker);
 			} catch (IOException e) {
 				Log.e(LOG_TAG, "Error while handling request by App: " + e, e);
