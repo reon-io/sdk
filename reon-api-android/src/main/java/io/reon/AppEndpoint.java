@@ -1,7 +1,6 @@
 package io.reon;
 
 import android.content.Context;
-
 import io.reon.http.HttpServiceUnavailableException;
 
 public abstract class AppEndpoint extends Endpoint {
@@ -23,7 +22,9 @@ public abstract class AppEndpoint extends Endpoint {
 			} catch (ClassNotFoundException e) {
 				throw new HttpServiceUnavailableException(e.getMessage(), e);
 			}
-		    if (Context.class.equals(fpClazz))
+			if (fp.getName().equals(getServiceName())) {
+				ap = new ActualParam(fpClazz, getServiceObject());
+			} else if (Context.class.equals(fpClazz))
 				ap = new ActualParam(Context.class, getContext());
 		}
 		return  ap;

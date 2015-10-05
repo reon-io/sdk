@@ -117,9 +117,7 @@ public abstract class Endpoint {
 		}
 		Map<String, String> paramsMap = ic.request.getParameterMap();
 		String fpName = fp.getName();
-		if (fpName.equals(getServiceName())) {
-			return new ActualParam(fpClazz, getServiceObject());
-		} else if (ic.groupMap.containsKey(fpName)) {
+		if (ic.groupMap.containsKey(fpName)) {
 			int urlGroupIdx = ic.groupMap.get(fpName);
 			String val = ic.matcher.group(urlGroupIdx);
 			Object convertedVal = convert(val, fp.getTypeName());
