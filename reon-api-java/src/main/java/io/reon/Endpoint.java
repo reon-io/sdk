@@ -1,8 +1,5 @@
 package io.reon;
 
-import android.content.Context;
-import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
@@ -47,6 +44,24 @@ public abstract class Endpoint {
 		}
 	}
 
+	protected class InvocationContext {
+		public final String uri;
+		public final Request request;
+		public final FormalParam[] formalParams;
+		public final Map<String, String> defaultQueryParams;
+		public final Map<String, Integer> groupMap;
+		public final Matcher matcher;
+
+		public InvocationContext(String uri, Request request, FormalParam[] formalParams, Map<String, String> defaultQueryParams, Map<String, Integer> groupMap) {
+			this.uri = uri;
+			this.request = request;
+			this.formalParams = formalParams;
+			this.defaultQueryParams = defaultQueryParams;
+			this.groupMap = groupMap;
+			matcher = getMatcher(urlNoQueryParams(uri));
+		}
+	}
+
 	private WebContext webContext;
 
 	public Endpoint(WebContext context) {
@@ -71,25 +86,21 @@ public abstract class Endpoint {
 		return null;
 	}
 
-	protected Context getContext() {
-		return webContext.getContext();
-	}
-
 	protected abstract Pattern getPattern();
 
-	protected Matcher matcher(String uri) {
+	protected Matcher getMatcher(String uri) {
 		return getPattern().matcher(uri);
 	}
 
 	public boolean match(Method method, String uri) {
 		String urlNoQueryParams = urlNoQueryParams(uri);
-		Matcher m = matcher(urlNoQueryParams);
+		Matcher m = getMatcher(urlNoQueryParams);
 		boolean matched = httpMethod().equals(method) && m.matches();
-		if (matched) {
-			Log.d("Endpoint", "matched path " + httpMethod() + " " + originalPath() + " (pattern: " + getPattern() + ") request: " + method + " " + uri);
+//		if (matched) {
+//			Log.d("Endpoint", "matched path " + httpMethod() + " " + originalPath() + " (pattern: " + getPattern() + ") request: " + method + " " + uri);
 //		} else {
 //			Log.d("Endpoint", "not matched path " + httpMethod() + " " + originalPath() + " (pattern: " + getPattern() + ") request: " + method + " " + uri);
-		}
+//		}
 		return matched;
 	}
 
@@ -97,51 +108,51 @@ public abstract class Endpoint {
 
 	protected abstract Method httpMethod();
 
-	protected ActualParam[] actualParams(String uri, Request request, FormalParam[] formalParams, Map<String, String> defaultQueryParams, Map<String, Integer> groupMap, Context ctx) throws HttpException {
-		String urlNoQueryParams = urlNoQueryParams(uri);
-		Map<String, String> paramsMap = request.getParameterMap();
-		Matcher m = matcher(urlNoQueryParams);
-		ActualParam[] actualParams = new ActualParam[formalParams.length];
-		if (m.matches()) {
-			for (FormalParam fp : formalParams) {
-				int fpId = fp.getId();
-				Class<?> fpClazz;
-				try {
-					fpClazz = classForName(fp.getTypeName());
-				} catch (ClassNotFoundException e) {
-					throw new HttpServiceUnavailableException(e.getMessage(), e);
-				}
-				String fpName = fp.getName();
-				if (fpName.equals(getServiceName())) {
-					actualParams[fpId] = new ActualParam(fpClazz, getServiceObject());
-				} else if (groupMap.containsKey(fpName)) {
-					int urlGroupIdx = groupMap.get(fpName);
-					String val = m.group(urlGroupIdx);
-					Object convertedVal = convert(val, fp.getTypeName());
-					actualParams[fpId] = new ActualParam(fpClazz, convertedVal);
-				} else if (Context.class.equals(fpClazz)) {
-					actualParams[fpId] = new ActualParam(Context.class, ctx);
-				} else if (Cookies.class.equals(fpClazz)){
-					actualParams[fpId] = new ActualParam(Cookies.class, request.getCookies());
-				} else if (Cookie.class.equals(fpClazz)) {
-					Cookie cookie = request.getCookies().getCookie(fpName);
-					actualParams[fpId] = new ActualParam(Cookie.class, cookie);
-				} else if (Headers.class.equals(fpClazz)) {
-					actualParams[fpId] = new ActualParam(Headers.class, request.getHeaders());
-				} else if (Request.class.equals(fpClazz)) {
-					actualParams[fpId] = new ActualParam(Request.class, request);
-				} else if (paramsMap.containsKey(fpName)) {
-					String val = paramsMap.get(fpName);
-					Object convertedVal = convert(val, fp.getTypeName());
-					actualParams[fpId] = new ActualParam(fpClazz, convertedVal);
-				} else if (defaultQueryParams.containsKey(fpName)) {
-					String val = defaultQueryParams.get(fpName);
-					Object convertedVal = convert(val, fp.getTypeName());
-					actualParams[fpId] = new ActualParam(fpClazz, convertedVal);
-				}
+	protected ActualParam matchActualParam(FormalParam fp, InvocationContext ic) {
+		Class<?> fpClazz;
+		try {
+			fpClazz = classForName(fp.getTypeName());
+		} catch (ClassNotFoundException e) {
+			throw new HttpServiceUnavailableException(e.getMessage(), e);
+		}
+		Map<String, String> paramsMap = ic.request.getParameterMap();
+		String fpName = fp.getName();
+		if (fpName.equals(getServiceName())) {
+			return new ActualParam(fpClazz, getServiceObject());
+		} else if (ic.groupMap.containsKey(fpName)) {
+			int urlGroupIdx = ic.groupMap.get(fpName);
+			String val = ic.matcher.group(urlGroupIdx);
+			Object convertedVal = convert(val, fp.getTypeName());
+			return new ActualParam(fpClazz, convertedVal);
+		} else if (Cookies.class.equals(fpClazz)){
+			return new ActualParam(Cookies.class, ic.request.getCookies());
+		} else if (Cookie.class.equals(fpClazz)) {
+			Cookie cookie = ic.request.getCookies().getCookie(fpName);
+			return new ActualParam(Cookie.class, cookie);
+		} else if (Headers.class.equals(fpClazz)) {
+			return new ActualParam(Headers.class, ic.request.getHeaders());
+		} else if (Request.class.equals(fpClazz)) {
+			return new ActualParam(Request.class, ic.request);
+		} else if (paramsMap.containsKey(fpName)) {
+			String val = paramsMap.get(fpName);
+			Object convertedVal = convert(val, fp.getTypeName());
+			return new ActualParam(fpClazz, convertedVal);
+		} else if (ic.defaultQueryParams.containsKey(fpName)) {
+			String val = ic.defaultQueryParams.get(fpName);
+			Object convertedVal = convert(val, fp.getTypeName());
+			return new ActualParam(fpClazz, convertedVal);
+		}
+		return null;
+	}
+
+	protected ActualParam[] actualParams(InvocationContext ic) throws HttpException {
+		ActualParam[] actualParams = new ActualParam[ic.formalParams.length];
+		if (ic.matcher.matches()) {
+			for (FormalParam fp : ic.formalParams) {
+				actualParams[fp.getId()] = matchActualParam(fp, ic);
 			}
 		} else {
-			throw new HttpServiceUnavailableException("couldn't match URI: '" + uri + "' with pattern '" + getPattern() + "' (BTW, this shouldn't happen...)");
+			throw new HttpServiceUnavailableException("couldn't match URI: '" + ic.uri + "' with pattern '" + getPattern() + "' (BTW, this shouldn't happen...)");
 		}
 		return actualParams;
 	}

@@ -25,17 +25,17 @@ import io.reon.http.HttpException;
 import io.reon.http.Request;
 import io.reon.http.Response;
 
-public class MyWebViewClient extends WebViewClient {
-	private static final String LOG_TAG = MyWebViewClient.class.getName();
-	private static final String PREFIX = "http://myweb/";
-	private final WebContext webContext;
+public class ReonWebViewClient extends WebViewClient {
+	private static final String LOG_TAG = ReonWebViewClient.class.getName();
+	private static final String PREFIX = "http://reon/";
+	private final WebAppContext webAppContext;
 	private final String root;
 	private WebViewClient delegate = new WebViewClient();
 	private CookieManager cookieManager;
 
-	public MyWebViewClient(WebContext ec, String packageName) {
+	public ReonWebViewClient(WebAppContext ec, String packageName) {
 		super();
-		webContext = ec;
+		webAppContext = ec;
 		root = PREFIX + packageName;
 	}
 
@@ -63,7 +63,7 @@ public class MyWebViewClient extends WebViewClient {
 	@Override
 	public WebResourceResponse shouldInterceptRequest(final WebView view, final String url) {
 //		Log.d(LOG_TAG, "Url: " + url);
-		if (url.startsWith(root) && webContext != null) {
+		if (url.startsWith(root) && webAppContext != null) {
 			CookieManager cm = getCookieManager(view.getContext());
 			Request request = new Request(url.substring(root.length()));
 
@@ -90,7 +90,7 @@ public class MyWebViewClient extends WebViewClient {
 			request.getHeaders().update(Headers.REQUEST.COOKIE, cookies.get());
 			try {
 //				Log.d(LOG_TAG, "Request: "+request.getURI().toString());
-				final Response response = webContext.getRequestProcessor().processRequest(request);
+				final Response response = webAppContext.getRequestProcessor().processRequest(request);
 //				Log.d(LOG_TAG, "Response: "+response.toString());
 				handler.post( new Runnable() {
 					@Override

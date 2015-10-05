@@ -12,9 +12,9 @@ import java.util.Map;
 
 import io.reon.http.*;
 
-public class $parsedMethod.generatedClassName extends Endpoint {
+public class $parsedMethod.generatedClassName extends AppEndpoint {
 
-	public ${parsedMethod.generatedClassName}(WebContext ctx) {
+	public ${parsedMethod.generatedClassName}(WebAppContext ctx) {
 		super(ctx);
 	}
 
@@ -49,7 +49,7 @@ public class $parsedMethod.generatedClassName extends Endpoint {
 		return groupMap;
 	}
 
-	private Map<String, String> defaulQueryParams() {
+	private Map<String, String> defaultQueryParams() {
 		Map<String, String> defaultQueryParams = new HashMap<String, String>();
 #foreach( $dqp in $parsedMethod.defaultQueryParams)
 		defaultQueryParams.put("$dqp.name", "$dqp.val");
@@ -83,7 +83,8 @@ public class $parsedMethod.generatedClassName extends Endpoint {
 	@Override
 	public Response invoke(String uri, Request request) throws HttpException, IOException {
 		try {
-			ActualParam[] ap = actualParams(uri, request, formalParams(), defaulQueryParams(), groupMap(), getWebContext().getContext());
+			InvocationContext ic = new InvocationContext(uri, request, formalParams(), defaultQueryParams(), groupMap());
+			ActualParam[] ap = actualParams(ic);
 			final ${parsedMethod.destMethodRetType} respFromUserCode = new ${parsedMethod.destClass}().${parsedMethod.destMethod}($parsedMethod.paramsJavaSrc);
 			return Response.ok().withBody(respFromUserCode).withId(request.getId());
 		} catch (Throwable e) {

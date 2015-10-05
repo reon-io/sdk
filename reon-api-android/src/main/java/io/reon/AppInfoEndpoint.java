@@ -12,12 +12,12 @@ import io.reon.http.Method;
 import io.reon.http.Request;
 import io.reon.http.Response;
 
-public class AppInfoEndpoint extends Endpoint {
+public class AppInfoEndpoint extends AppEndpoint {
 	public static final String SERVICES_JSON = "/services.json";
 
 	private JSONObject servicesJson = null;
 
-	public AppInfoEndpoint(WebContext ctx) {
+	public AppInfoEndpoint(WebAppContext ctx) {
 		super(ctx);
 	}
 

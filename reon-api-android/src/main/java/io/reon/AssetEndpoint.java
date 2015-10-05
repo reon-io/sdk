@@ -10,11 +10,11 @@ import io.reon.http.Method;
 import io.reon.http.Request;
 import io.reon.http.Response;
 
-public class AssetEndpoint extends Endpoint {
+public class AssetEndpoint extends AppEndpoint {
 
 	public static final String MYWEB_ASSETS_DIR = "reon";
 
-	public AssetEndpoint(WebContext ctx) {
+	public AssetEndpoint(WebAppContext ctx) {
 		super(ctx);
 	}
 

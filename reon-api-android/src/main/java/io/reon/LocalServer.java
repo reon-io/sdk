@@ -9,14 +9,14 @@ import java.util.concurrent.ExecutorService;
 
 public class LocalServer implements Runnable {
 	public static final String LOG_TAG = LocalServer.class.getName();
-	private final WebContext context;
+	private final WebAppContext context;
 	private final ExecutorService executor;
 
 	private LocalServerSocket serverSocket;
 
 	private volatile boolean closed;
 
-	public LocalServer(WebContext context, ExecutorService executor) {
+	public LocalServer(WebAppContext context, ExecutorService executor) {
 		this.context = context;
 		this.executor = executor;
 	}

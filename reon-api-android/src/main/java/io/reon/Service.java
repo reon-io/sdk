@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.reon.http.Method;
 
-public class Service extends LocalService<WebContext> implements WebContext {
+public class Service extends LocalService<WebAppContext> implements WebAppContext {
 	static final String ASSETS_CLASS_NAME = "io.reon.MyAssetInfo";
 	static final String SERVICES_CLASS_NAME = "io.reon.MyServices";
 
@@ -128,7 +128,7 @@ public class Service extends LocalService<WebContext> implements WebContext {
 		List<Endpoint> list = new LinkedList<Endpoint>();
 		for (Endpoint.Info info: endpointList) {
 			try {
-				Endpoint ep = (Endpoint) info.getImplementingClass().getConstructor(WebContext.class).newInstance(this);
+				Endpoint ep = (Endpoint) info.getImplementingClass().getConstructor(WebAppContext.class).newInstance(this);
 				System.out.println(ep.httpMethod().toString()+" "+ep.originalPath()+" instantiated!");
 				list.add(ep);
 			} catch (Exception e) {
