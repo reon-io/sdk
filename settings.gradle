@@ -1,5 +1,5 @@
 include ':reon-api-java',
-	':reon-api-android',
+        ':reon-api-android',
         ':reon-api',
         ':reon-compiler',
         ':reon-test'
