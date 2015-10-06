@@ -22,9 +22,6 @@ android {
 publishing {
 	publications {
 		plugin(MavenPublication) {
-			// TODO is there a better way for that?
-			def aarName = "build/outputs/aar/${artifactId}-${project.version}.aar"
-			artifact file(aarName)
 			artifactId 'reon-api'
 		}
 	}
