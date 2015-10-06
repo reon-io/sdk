@@ -8,8 +8,11 @@
         <service
             android:name="io.reon.Service"
             android:exported="true"
-            android:permission="io.reon.server.permission.REQUEST">
+            android:permission="io.reon.server.permission.REQUEST" >
         </service>
+
+        <activity android:name="io.reon.MainWebActivity" >
+        </activity>
     </application>
 
 </manifest>

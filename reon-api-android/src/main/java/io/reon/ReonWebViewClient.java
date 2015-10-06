@@ -28,14 +28,14 @@ import io.reon.http.Response;
 public class ReonWebViewClient extends WebViewClient {
 	private static final String LOG_TAG = ReonWebViewClient.class.getName();
 	private static final String PREFIX = "http://reon/";
-	private final WebAppContext webAppContext;
+	private final WebContext webContext;
 	private final String root;
 	private WebViewClient delegate = new WebViewClient();
 	private CookieManager cookieManager;
 
-	public ReonWebViewClient(WebAppContext ec, String packageName) {
+	public ReonWebViewClient(WebContext ec, String packageName) {
 		super();
-		webAppContext = ec;
+		webContext = ec;
 		root = PREFIX + packageName;
 	}
 
@@ -63,7 +63,7 @@ public class ReonWebViewClient extends WebViewClient {
 	@Override
 	public WebResourceResponse shouldInterceptRequest(final WebView view, final String url) {
 //		Log.d(LOG_TAG, "Url: " + url);
-		if (url.startsWith(root) && webAppContext != null) {
+		if (url.startsWith(root) && webContext != null) {
 			CookieManager cm = getCookieManager(view.getContext());
 			Request request = new Request(url.substring(root.length()));
 
@@ -90,7 +90,7 @@ public class ReonWebViewClient extends WebViewClient {
 			request.getHeaders().update(Headers.REQUEST.COOKIE, cookies.get());
 			try {
 //				Log.d(LOG_TAG, "Request: "+request.getURI().toString());
-				final Response response = webAppContext.getRequestProcessor().processRequest(request);
+				final Response response = webContext.getRequestProcessor().processRequest(request);
 //				Log.d(LOG_TAG, "Response: "+response.toString());
 				handler.post( new Runnable() {
 					@Override

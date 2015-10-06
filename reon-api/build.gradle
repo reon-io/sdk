@@ -5,29 +5,29 @@ group = projectIds.group
 version = projectIds.version
 
 dependencies {
-    compile project(':reon-api-java')
+	compile project(':reon-api-java')
 	compile project(':reon-api-android')
+	compile 'com.android.support:appcompat-v7:22.2.1'
 }
 
 android {
-    compileSdkVersion 19
-    buildToolsVersion '19.1.0'
-
-    defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 19
-    }
+	compileSdkVersion 22
+	buildToolsVersion '22.0.1'
+	defaultConfig {
+		minSdkVersion 14
+		targetSdkVersion 21
+	}
 }
 
 publishing {
-    publications {
-        plugin(MavenPublication) {
-            // TODO is there a better way for that?
-            def aarName = "build/outputs/aar/${artifactId}-${project.version}.aar"
-            artifact file(aarName)
-            artifactId 'mywebio-api'
-        }
-    }
+	publications {
+		plugin(MavenPublication) {
+			// TODO is there a better way for that?
+			def aarName = "build/outputs/aar/${artifactId}-${project.version}.aar"
+			artifact file(aarName)
+			artifactId 'reon-api'
+		}
+	}
 }
 
 publishToMavenLocal.dependsOn 'build'
