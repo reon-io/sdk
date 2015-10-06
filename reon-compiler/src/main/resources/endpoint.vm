@@ -73,9 +73,9 @@ public class $parsedMethod.generatedClassName extends AppEndpoint {
 	@Override
 	protected Object getServiceObject() {
 #if ($parsedMethod.service.remote)
-		return getWebContext().bindService(android.content.ComponentName.unflattenFromString("$parsedMethod.service.componentName");
+		return getWebAppContext().bindService(android.content.ComponentName.unflattenFromString("$parsedMethod.service.componentName");
 #else
-		return getWebContext().bindService(new android.content.ComponentName(getContext(), ${parsedMethod.service.componentName}.class));
+		return getWebAppContext().bindService(new android.content.ComponentName(getContext(), ${parsedMethod.service.componentName}.class));
 #end
 	}
 #end

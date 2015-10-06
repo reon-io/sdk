@@ -11,6 +11,10 @@ public abstract class AppEndpoint extends Endpoint {
 		ctx = context.getContext();
 	}
 
+	public WebAppContext getWebAppContext() {
+		return (WebAppContext) getWebContext();
+	}
+
 	protected Context getContext() {
 		return ctx;
 	}
