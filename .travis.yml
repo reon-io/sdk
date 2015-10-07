@@ -1,0 +1,9 @@
+language: android
+android:
+  components:
+    - build-tools-22.0.1
+    - android-22
+before_install:
+  - export GRADLE_OPTS="-Xmx1024m -XX:MaxPermSize=256m"
+script: ./gradlew build
+install: true
