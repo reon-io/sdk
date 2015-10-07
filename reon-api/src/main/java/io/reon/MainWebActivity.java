@@ -1,12 +1,12 @@
 package io.reon;
 
+import android.app.Activity;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.webkit.WebView;
 
 import io.reon.api.R;
 
-public class MainWebActivity extends AppCompatActivity implements LocalService.ConnectionListener<WebContext> {
+public class MainWebActivity extends Activity implements LocalService.ConnectionListener<WebContext> {
 	LocalService.Connection<WebContext> myServiceConnection;
 	protected WebView webView;
 	protected ReonWebViewClient myWebViewClient;

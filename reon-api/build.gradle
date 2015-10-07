@@ -7,7 +7,6 @@ version = projectIds.version
 dependencies {
 	compile project(':reon-api-java')
 	compile project(':reon-api-android')
-	compile 'com.android.support:appcompat-v7:22.2.1'
 }
 
 android {
