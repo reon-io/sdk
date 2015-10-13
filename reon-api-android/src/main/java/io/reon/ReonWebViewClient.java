@@ -24,6 +24,7 @@ import io.reon.http.Headers;
 import io.reon.http.HttpException;
 import io.reon.http.Request;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class ReonWebViewClient extends WebViewClient {
 	private static final String LOG_TAG = ReonWebViewClient.class.getName();
@@ -103,7 +104,7 @@ public class ReonWebViewClient extends WebViewClient {
 					}
 				});
 
-				return createWebResponse(response.withIdentity());
+				return createWebResponse(ResponseBuilder.resp(response).withIdentity().build());
 			} catch (IOException e) {
 				Log.e(LOG_TAG, e.getMessage(), e);
 			} catch (HttpException e) {

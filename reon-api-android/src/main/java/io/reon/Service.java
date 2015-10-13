@@ -3,8 +3,12 @@ package io.reon;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.net.LocalSocket;
+import android.net.LocalSocketAddress;
 import android.util.Log;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -15,10 +19,12 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.reon.http.Method;
+import io.reon.http.Request;
 
 public class Service extends LocalService<WebAppContext> implements WebAppContext {
 	static final String ASSETS_CLASS_NAME = "io.reon.MyAssetInfo";
 	static final String SERVICES_CLASS_NAME = "io.reon.MyServices";
+	static final String SOCKET_ADDR = "/tmp/io.reon.server";
 
 	public static final String TAG = Service.class.getName();
 
@@ -64,11 +70,15 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "Received intent from server");
-		// We have to start listening on local socket
 		if (executorService == null) {
 			executorService = new ThreadPoolExecutor(2, 16, 60, TimeUnit.SECONDS,
 					new SynchronousQueue<Runnable>(), ThreadFactories.newWorkerThreadFactory());
 		}
+//		if(intent.getAction().equals(Intent.ACTION_CALL)) {
+//			// We have to connect to a socket to pull request from
+//			long requestId = intent.getLongExtra(Intent.EXTRA_UID, -1);
+//			requestLocal(requestId);
+//		}
 		if (localServer == null || localServer.isClosed()) {
 			localServer = new LocalServer(this, executorService);
 			executorService.submit(localServer);
@@ -76,10 +86,25 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 		return android.app.Service.START_NOT_STICKY;
 	}
 
+	protected void requestLocal(long id) {
+		try {
+			LocalSocket ls = new LocalSocket();
+			ls.connect(new LocalSocketAddress(SOCKET_ADDR));
+			LocalSocketConnection lsc = new LocalSocketConnection(ls);
+			OutputStream os = lsc.getOutputStream();
+			os.write(new Request(Method.TRACE, "#"+Long.toHexString(id)).toString().getBytes());
+			os.flush();
+			RequestTask worker = new RequestTask(lsc, getRequestProcessor());
+			executorService.execute(worker);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		Log.d(TAG, "Creating reon service");
+		Log.d(TAG, "Creating REON service");
 		if (requestProcessor == null) {
 			requestProcessor = new RequestProcessor(createEndpoints(), getFilters());
 		}
@@ -87,7 +112,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "Destroying reon service");
+		Log.d(TAG, "Destroying REON service");
 		TempServiceConnection.terminateAll();
 		if (localServer != null) {
 			localServer.shutdown();

@@ -17,6 +17,7 @@ import io.reon.api.*;
 import io.reon.util.JSONUtils;
 import io.reon.http.Request;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class $provider.generatedClassName {
 	public final static String CONTENT = "content://";
@@ -28,7 +29,7 @@ public class $provider.generatedClassName {
 		String[] strProjection = JSONUtils.jsonArrayToStringArray(projection);
 		String[] strValues = JSONUtils.jsonArrayToStringArray(values);
 		Cursor cursor = ctx.getContentResolver().query(Uri.parse(CONTENT + PROVIDER + "/" + path), strProjection, selection, strValues, order);
-		return Response.ok().withBody(JSONUtils.cursorToJSONObject(cursor, range));
+		return ResponseBuilder.ok().withBody(JSONUtils.cursorToJSONObject(cursor, range)).build();
 	}
 #end
 
@@ -38,7 +39,7 @@ public class $provider.generatedClassName {
 		String[] strValues = JSONUtils.jsonArrayToStringArray(values);
 		ContentValues vals = JSONUtils.jsonToValues(req.getBodyAsJSON());
 		int count = ctx.getContentResolver().update(Uri.parse(CONTENT + PROVIDER + "/" + path), vals, selection, strValues);
-		return Response.ok().withBody(new JSONObject().put("count", count));
+		return ResponseBuilder.ok().withBody(new JSONObject().put("count", count)).build();
 	}
 #end
 
@@ -47,7 +48,7 @@ public class $provider.generatedClassName {
 	public Response doPost(Context ctx, String path, Request req) throws JSONException {
 		ContentValues vals = JSONUtils.jsonToValues(req.getBodyAsJSON());
 		Uri u = ctx.getContentResolver().insert(Uri.parse(CONTENT + PROVIDER + "/" + path), vals);
-		return Response.ok().withBody(new JSONObject().put("uri", u.toString().replace(CONTENT, "/"+ctx.getPackageName()+"/")));
+		return ResponseBuilder.ok().withBody(new JSONObject().put("uri", u.toString().replace(CONTENT, "/"+ctx.getPackageName()+"/"))).build();
 	}
 #end
 
@@ -56,7 +57,7 @@ public class $provider.generatedClassName {
 	public Response doDelete(Context ctx, String path, String selection, JSONArray values) throws JSONException {
 		String[] strValues = JSONUtils.jsonArrayToStringArray(values);
 		int count = ctx.getContentResolver().delete(Uri.parse(CONTENT + PROVIDER + "/" + path), selection, strValues);
-		return Response.ok().withBody(new JSONObject().put("count", count));
+		return ResponseBuilder.ok().withBody(new JSONObject().put("count", count)).build();
 	}
 #end
 

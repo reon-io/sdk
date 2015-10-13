@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import io.reon.http.Method;
 import io.reon.http.Request;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class AssetEndpoint extends AppEndpoint {
 
@@ -52,6 +53,13 @@ public class AssetEndpoint extends AppEndpoint {
 		AssetManager assetManager = getContext().getAssets();
 		InputStream is = assetManager.open(REON_ASSETS_DIR + uri);
 		long length = getWebContext().getAssetInfo().getAssetLength(uri);
-		return Response.ok().withId(request.getId()).withContentTypeFrom(uri).withLength(length).withBody(is);
+		return ResponseBuilder
+				.ok()
+				.withId(request.getId())
+				.withContentTypeFrom(uri)
+				.withLength(length)
+				.withBody(is).build();
 	}
+
+
 }

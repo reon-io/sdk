@@ -43,6 +43,7 @@ public class Headers {
 		public static final String RANGE = "Range";
 		public static final String REFERER = "Referer";
 		public static final String TE = "TE";
+		public static final String TRANSFER_ENC = "Transfer-Encoding";
 		public static final String USER_AGENT = "User-Agent";
 		public static final String UPGRADE = "Upgrade";
 		public static final String VIA = "Via";
@@ -79,7 +80,7 @@ public class Headers {
 		public static final String STATUS = "Status";
 		public static final String STRICT_TRANS_SEC = "Strict-Transport-Security";
 		public static final String TRAILER = "Trailer";
-		public static final String TRANSFER_ENC = "Transfer-Encoding";
+		public static final String TRANSFER_ENC = REQUEST.TRANSFER_ENC;
 		public static final String CONTENT_TRANSFER_ENC = "Content-Transfer-Encoding";
 		public static final String UPGRADE = REQUEST.UPGRADE;
 		public static final String VARY = "Vary";
@@ -102,7 +103,7 @@ public class Headers {
 		public static final String CTO = "X-Content-Type-Options";
 		public static final String POWERED_BY = "X-Powered-By";
 		public static final String UA_COMPATIBLE = "X-UA-Compatible";
-		public static final String MYWEB_ID ="X-Myweb-Request-Id";
+		public static final String REON_ID ="X-Request-Id";
 	}
 
 	public static final class Header {
@@ -143,6 +144,10 @@ public class Headers {
 
 	public void add(Header h) {
 		if (h != null) headerList.add(h);
+	}
+
+	public void add(Headers hdrs) {
+		for(Header h: hdrs.headerList) add(h);
 	}
 
 	public void add(String name, String value) {

@@ -4,7 +4,9 @@ import io.reon.api.After;
 import io.reon.api.Before;
 import io.reon.api.GET;
 import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class Test1 {
 
@@ -15,12 +17,12 @@ public class Test1 {
 
 	@Before("/test")
 	public Request precondition(Request r) {
-		return r.withId("Aqq");
+		return RequestBuilder.req(r).withId("Aqq").build();
 	}
 
 	@After("/test")
 	public Response postcondition(Response r) {
-		return r.withKeepAlive();
+		return ResponseBuilder.resp(r).withKeepAlive().build();
 	}
 
 }

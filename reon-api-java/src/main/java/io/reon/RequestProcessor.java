@@ -3,13 +3,16 @@ package io.reon;
 import java.io.IOException;
 import java.util.List;
 
+import io.reon.http.Headers;
 import io.reon.http.HttpException;
 import io.reon.http.HttpInternalErrorException;
 import io.reon.http.HttpNotFoundException;
 import io.reon.http.Method;
 import io.reon.http.MimeTypes;
 import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class RequestProcessor {
 	private static final String INDEX_HTML = "/index.html";
@@ -43,7 +46,8 @@ public class RequestProcessor {
 				try {
 					Request filteredRequest = filterBefore(effectiveUri, request);
 					if (filteredRequest.isRedirected()) {
-						request = filteredRequest.withRedirection(null);
+						filteredRequest.getHeaders().remove(Headers.REQUEST.ORIGIN);
+						request = filteredRequest;
 						continue;
 					}
 					response = endpoint.invoke(effectiveUri, filteredRequest);
@@ -68,7 +72,7 @@ public class RequestProcessor {
 		if (!contentType.contains("charset=") && isTextContent(contentType)) {
 			contentType = contentType + "; charset=" + response.getCharset();
 		}
-		return response.withContentType(contentType);
+		return ResponseBuilder.resp(response).withContentType(contentType).build();
 	}
 
 	private static boolean isTextContent(String content) {

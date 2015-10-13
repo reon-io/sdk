@@ -86,7 +86,7 @@ public class $parsedMethod.generatedClassName extends AppEndpoint {
 			InvocationContext ic = new InvocationContext(uri, request, formalParams(), defaultQueryParams(), groupMap());
 			ActualParam[] ap = actualParams(ic);
 			final ${parsedMethod.destMethodRetType} respFromUserCode = new ${parsedMethod.destClass}().${parsedMethod.destMethod}($parsedMethod.paramsJavaSrc);
-			return Response.ok().withBody(respFromUserCode).withId(request.getId());
+			return ResponseBuilder.ok().withBody(respFromUserCode).withId(request.getId()).build();
 		} catch (Throwable e) {
 			if (e instanceof HttpException) throw (HttpException) e;
 			if (e instanceof IOException) throw (IOException) e;

@@ -11,6 +11,7 @@ import io.reon.http.HttpException;
 import io.reon.http.Method;
 import io.reon.http.Request;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public abstract class ServicesEndpoint extends Endpoint {
 	public static final String SERVICES_JSON = "/services.json";
@@ -67,6 +68,6 @@ public abstract class ServicesEndpoint extends Endpoint {
 
 	@Override
 	public Response invoke(String uri, Request request) throws HttpException, IOException {
-		return Response.ok().withId(request.getId()).withBody(getServicesJson());
+		return ResponseBuilder.ok().withId(request.getId()).withBody(getServicesJson()).build();
 	}
 }

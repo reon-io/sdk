@@ -4,12 +4,13 @@ import io.reon.api.GET;
 import io.reon.http.Cookie;
 import io.reon.http.Cookies;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class TestCookie {
 
 	@GET("/setCookie?:name=name&:value=value")
 	public Response setCookie(String name, String value) {
-		return Response.ok().withCookie(new Cookie(name, value + value));
+		return ResponseBuilder.ok().withCookie(new Cookie(name, value + value)).build();
 	}
 
 	@GET("/acceptCookie?:cookieName=name")

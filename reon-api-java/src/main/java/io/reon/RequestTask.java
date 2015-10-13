@@ -10,7 +10,9 @@ import io.reon.http.HttpBadRequestException;
 import io.reon.http.HttpException;
 import io.reon.http.HttpInternalErrorException;
 import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
 import io.reon.http.Response;
+import io.reon.http.ResponseBuilder;
 
 public class RequestTask implements Runnable {
 
@@ -35,7 +37,7 @@ public class RequestTask implements Runnable {
 	private void writeErrorResponse(String requestId, HttpException ex) {
 		try {
 			ResponseWriter rw = new ResponseWriter(conn.getOutputStream());
-			rw.write(Response.error(ex).withId(requestId).withBody(preformatted(getStackTrace(ex))));
+			rw.write(ResponseBuilder.error(ex).withId(requestId).withBody(preformatted(getStackTrace(ex))).build());
 			rw.close();
 		} catch (IOException err) {
 			err.printStackTrace();
@@ -66,7 +68,8 @@ public class RequestTask implements Runnable {
 				}
 				if (request != null) {
 					requestId = request.getId();
-					writeResponse(processor.processRequest(request.withBody(inputStream)));
+					writeResponse(processor.processRequest(
+							RequestBuilder.req(request).withBody(inputStream).build()));
 					keepAlive = request.isKeptAlive();
 					// make sure request body has been read
 					if (keepAlive) request.readBody();

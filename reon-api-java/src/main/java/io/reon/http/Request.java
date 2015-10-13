@@ -16,22 +16,25 @@ import java.util.Map;
 public class Request {
 	public static final int BUFFER_LENGTH = 32 * 1024;
 	public static final int IN_MEMORY_LIMIT = 2 * 1024 * 1024; // 2 MB
+	public static final String HTTP_1_1 = "HTTP/1.1";
 	private final Method method;
-	private URI uri;
+	URI uri;
 	private final String protocolVersion;
 	private final Headers headers;
 	private final Cookies cookies;
-	private String stringBody;
-	private JSONObject jsonBody;
-	private byte[] cachedBody;
-	private File fileBody;
-	private InputStream body;
+	String stringBody;
+	JSONObject jsonBody;
+	byte[] cachedBody;
+	InputStream body;
 	private Map<String,String> parameterMap = null;
 	private long contentLength = -1;
-	private boolean redirected = false;
 
 	public Request(String url) {
-		this(Method.GET, URI.create(url), "1.1", new Headers());
+		this(Method.GET, URI.create(url), HTTP_1_1, new Headers());
+	}
+
+	public Request(Method m, String url) {
+		this(m, URI.create(url), HTTP_1_1, new Headers());
 	}
 
 	private Request(Method method, URI uri, String protocolVersion, Headers headers) {
@@ -54,9 +57,18 @@ public class Request {
 		return contentLength;
 	}
 
+	public void setLength(long length) {
+		if (length < 0) getHeaders().remove(Headers.REQUEST.CONTENT_LEN);
+		else getHeaders().update(Headers.REQUEST.CONTENT_LEN, Long.toString(length));
+	}
+
 	public boolean isKeptAlive() {
 		Headers.Header keepAliveHeader = getHeaders().findFirst(Headers.REQUEST.CONNECTION);
 		return keepAliveHeader!=null && "keep-alive".equalsIgnoreCase(keepAliveHeader.getValue());
+	}
+
+	public boolean isChunked() {
+		return "chunked".equals(getHeaders().get(Headers.REQUEST.TRANSFER_ENC));
 	}
 
 	public Method getMethod() {
@@ -116,52 +128,13 @@ public class Request {
 	}
 
 	public String getId() {
-		Headers.Header myHeader = getHeaders().findFirst(Headers.X.MYWEB_ID);
+		Headers.Header myHeader = getHeaders().findFirst(Headers.X.REON_ID);
 		if (myHeader!=null) return myHeader.getValue();
 		return null;
 	}
 
-	public Request withBody(InputStream is) throws IOException {
-		// always read body
-		if (getContentLenght() > 0) {
-			body = is;
-			if (getContentLenght() <= IN_MEMORY_LIMIT) {
-				cachedBody = new byte[(int) getContentLenght()];
-				readBody(cachedBody);
-			}
-			body = null; // TODO think how to handle chunked requests
-		}
-		return this;
-	}
-
-	public Request withBody(String s) {
-		stringBody = s;
-		return this;
-	}
-
-	public Request withBody(JSONObject json) {
-		jsonBody = json;
-		return this;
-	}
-
-	public Request withId(String id) {
-		if (id != null) getHeaders().update(Headers.X.MYWEB_ID, id);
-		return this;
-	}
-
-	public Request withRedirection(URI u) {
-		if (u != null) {
-			getHeaders().update(Headers.REQUEST.ORIGIN, uri.toString());
-			redirected = true;
-			uri = u;
-		} else {
-			redirected = false;
-		}
-		return this;
-	}
-
 	public boolean isRedirected() {
-		return redirected;
+		return getHeaders().findFirst(Headers.REQUEST.ORIGIN) != null;
 	}
 
 	public Map<String, String> getParameterMap() {
@@ -246,5 +219,22 @@ public class Request {
 			}
 		}
 		return totalRead;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(method.toString());
+		sb.append(' ');
+		sb.append(uri.toString());
+		sb.append(' ');
+		sb.append(protocolVersion);
+		sb.append("\r\n");
+		if (headers != null) {
+			sb.append(headers.toString());
+			sb.append("\r\n");
+		}
+		sb.append("\r\n");
+		return sb.toString();
 	}
 }
