@@ -69,7 +69,7 @@ public class RequestTask implements Runnable {
 				if (request != null) {
 					requestId = request.getId();
 					writeResponse(processor.processRequest(
-							RequestBuilder.req(request).withBody(inputStream).build()));
+							RequestBuilder.with(request).withBody(inputStream).build()));
 					keepAlive = request.isKeptAlive();
 					// make sure request body has been read
 					if (keepAlive) request.readBody();

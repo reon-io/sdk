@@ -104,7 +104,7 @@ public class ReonWebViewClient extends WebViewClient {
 					}
 				});
 
-				return createWebResponse(ResponseBuilder.resp(response).withIdentity().build());
+				return createWebResponse(ResponseBuilder.with(response).withIdentity().build());
 			} catch (IOException e) {
 				Log.e(LOG_TAG, e.getMessage(), e);
 			} catch (HttpException e) {

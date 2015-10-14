@@ -9,56 +9,67 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-public class ResponseBuilder {
-	private Response response;
+public class ResponseBuilder extends Builder<Response> {
 
 	private ResponseBuilder(Response response) {
-		this.response = response;
+		that = response;
 	}
 
-	private static ResponseBuilder newWithStatusCode(StatusCode statusCode) {
+	public static ResponseBuilder startWith(StatusCode statusCode) {
 		return new ResponseBuilder(new Response(statusCode));
 	}
 
-	public static ResponseBuilder resp(Response response) {
+	public static ResponseBuilder with(Response response) {
 		return new ResponseBuilder(response);
 	}
 
 	public static ResponseBuilder ok() {
-		return newWithStatusCode(StatusCode.OK);
+		return startWith(StatusCode.OK);
 	}
 
 	public static ResponseBuilder notFound() {
-		return newWithStatusCode(StatusCode.NOT_FOUND).withClose();
+		return startWith(StatusCode.NOT_FOUND).withClose();
 	}
 
 	public static ResponseBuilder error(HttpException ex) {
-		return newWithStatusCode(ex.getStatusCode()).withClose();
+		return startWith(ex.getStatusCode()).withClose();
 	}
 
 	public static ResponseBuilder methodNotAllowed() {
-		return newWithStatusCode(StatusCode.METHOD_NOT_ALLOWED).withClose();
+		return startWith(StatusCode.METHOD_NOT_ALLOWED).withClose();
+	}
+
+	public static ResponseBuilder unauthorized() {
+		return startWith(StatusCode.UNAUTHORIZED).withClose();
 	}
 
 	public static ResponseBuilder serviceUnavailable() {
-		return newWithStatusCode(StatusCode.SERVICE_UNAVAILABLE).withClose();
+		return startWith(StatusCode.SERVICE_UNAVAILABLE).withClose();
 	}
 
 	public static ResponseBuilder internalError() {
-		return newWithStatusCode(StatusCode.INTERNAL_ERROR).withClose();
+		return startWith(StatusCode.INTERNAL_ERROR).withClose();
 	}
 
 	public static ResponseBuilder forbidden() {
-		return newWithStatusCode(StatusCode.FORBIDDEN);
+		return startWith(StatusCode.FORBIDDEN);
+	}
+
+	public static ResponseBuilder found(String location) {
+		return startWith(StatusCode.FOUND).withLocation(location);
+	}
+
+	private ResponseBuilder withLocation(String location) {
+		return withUpdatedHeader(Headers.RESPONSE.LOCATION, location);
 	}
 
 	public ResponseBuilder withHeader(String name, String value) {
-		response.getHeaders().add(name, value);
+		that.getHeaders().add(name, value);
 		return this;
 	}
 
 	public ResponseBuilder withUpdatedHeader(String name, String value) {
-		response.getHeaders().update(name, value);
+		that.getHeaders().update(name, value);
 		return this;
 	}
 
@@ -85,7 +96,7 @@ public class ResponseBuilder {
 	}
 
 	public ResponseBuilder withReason(String reason) {
-		response.setReason(reason);
+		that.setReason(reason);
 		return this;
 	}
 
@@ -102,12 +113,12 @@ public class ResponseBuilder {
 	}
 
 	public ResponseBuilder withBody(String s) {
-		response.body = s;
+		that.body = s;
 		return withLength(s.getBytes().length);
 	}
 
 	public ResponseBuilder withBody(InputStream is) {
-		response.body = is;
+		that.body = is;
 		return this;
 	}
 
@@ -116,17 +127,17 @@ public class ResponseBuilder {
 	}
 
 	public ResponseBuilder withBody(JSONObject jsonObject) {
-		response.body = jsonObject;
+		that.body = jsonObject;
 		return withContentType(MimeTypes.MIME_APPLICATION_JSON);
 	}
 
 	public ResponseBuilder withBody(JSONArray jsonObject) {
-		response.body = jsonObject;
+		that.body = jsonObject;
 		return withContentType(MimeTypes.MIME_APPLICATION_JSON);
 	}
 
 	public ResponseBuilder withBody(Response r) {
-		response = r;
+		that = r;
 		return this;
 	}
 
@@ -147,11 +158,7 @@ public class ResponseBuilder {
 	}
 
 	public ResponseBuilder withCharset(String charset) {
-		response.charset = charset;
+		that.charset = charset;
 		return this;
-	}
-
-	public Response build() {
-		return response;
 	}
 }

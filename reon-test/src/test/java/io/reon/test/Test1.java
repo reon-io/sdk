@@ -17,12 +17,12 @@ public class Test1 {
 
 	@Before("/test")
 	public Request precondition(Request r) {
-		return RequestBuilder.req(r).withId("Aqq").build();
+		return RequestBuilder.with(r).withId("Aqq").build();
 	}
 
 	@After("/test")
 	public Response postcondition(Response r) {
-		return ResponseBuilder.resp(r).withKeepAlive().build();
+		return ResponseBuilder.with(r).withKeepAlive().build();
 	}
 
 }

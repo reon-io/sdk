@@ -35,7 +35,7 @@ public class ResponseWriter extends AbstractWriter {
 	private void writeInputStream(Response response) throws IOException {
 		InputStream is = (InputStream) response.getBody();
 		final boolean chunked = !response.hasLength();
-		if (chunked) ResponseBuilder.resp(response).withChunks();
+		if (chunked) ResponseBuilder.with(response).withChunks();
 		os.write(response.toString().getBytes());
 		copy(is, os, chunked);
 		is.close();

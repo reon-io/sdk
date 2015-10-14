@@ -10,7 +10,6 @@ import io.reon.http.HttpNotFoundException;
 import io.reon.http.Method;
 import io.reon.http.MimeTypes;
 import io.reon.http.Request;
-import io.reon.http.RequestBuilder;
 import io.reon.http.Response;
 import io.reon.http.ResponseBuilder;
 
@@ -72,7 +71,7 @@ public class RequestProcessor {
 		if (!contentType.contains("charset=") && isTextContent(contentType)) {
 			contentType = contentType + "; charset=" + response.getCharset();
 		}
-		return ResponseBuilder.resp(response).withContentType(contentType).build();
+		return ResponseBuilder.with(response).withContentType(contentType).build();
 	}
 
 	private static boolean isTextContent(String content) {
