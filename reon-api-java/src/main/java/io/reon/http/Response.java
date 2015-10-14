@@ -81,6 +81,10 @@ public class Response {
 		if (onErrorListener != null) onErrorListener.onError(this, cause);
 	}
 
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
@@ -94,5 +98,4 @@ public class Response {
 		sb.append("\r\n");
 		return sb.toString();
 	}
-
 }

@@ -84,6 +84,11 @@ public class ResponseBuilder {
 		return this;
 	}
 
+	public ResponseBuilder withReason(String reason) {
+		response.setReason(reason);
+		return this;
+	}
+
 	public ResponseBuilder withContentType(String contentType) {
 		return withUpdatedHeader(Headers.RESPONSE.CONTENT_TYPE, contentType);
 	}
