@@ -1,14 +1,16 @@
 package io.reon.http;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-public class RequestBuilder extends Builder<Request> {
+public class RequestBuilder extends MessageBuilder<Request> {
 
 	private RequestBuilder(Request request) {
 		that = request;
@@ -54,64 +56,49 @@ public class RequestBuilder extends Builder<Request> {
 		return startWith(Method.OPTIONS, uri);
 	}
 
-	public RequestBuilder withHeader(String name, String value) {
-		that.getHeaders().add(name, value);
-		return this;
-	}
-
-	public RequestBuilder withHeaders(String headers) {
-		that.getHeaders().add(Headers.parse(headers));
-		return this;
-	}
-
-	public RequestBuilder withUpdatedHeader(String name, String value) {
-		that.getHeaders().update(name, value);
-		return this;
-	}
 
 	public RequestBuilder withId(String id) {
-		if (id != null) withUpdatedHeader(Headers.X.REON_ID, id);
-		return this;
+		return (RequestBuilder) super.withId(id);
 	}
 
 	public RequestBuilder withKeepAlive() {
-		return withUpdatedHeader(Headers.REQUEST.CONNECTION, "keep-alive");
+		return (RequestBuilder) super.withKeepAlive();
 	}
 
 	public RequestBuilder withUserAgent(String agent) {
-		return withUpdatedHeader(Headers.REQUEST.USER_AGENT, agent);
+		return (RequestBuilder) withUpdatedHeader(Headers.REQUEST.USER_AGENT, agent);
 	}
 
 	public RequestBuilder withHost(String host) {
-		return withUpdatedHeader(Headers.REQUEST.HOST, host);
+		return (RequestBuilder) withUpdatedHeader(Headers.REQUEST.HOST, host);
 	}
 
 	public RequestBuilder withFrom(String from) {
-		return withUpdatedHeader(Headers.REQUEST.FROM, from);
+		return (RequestBuilder) withUpdatedHeader(Headers.REQUEST.FROM, from);
 	}
 
 	public RequestBuilder withAuth(String auth) {
-		return withUpdatedHeader(Headers.REQUEST.AUTH, auth);
+		return (RequestBuilder) withUpdatedHeader(Headers.REQUEST.AUTH, auth);
 	}
 
 	public RequestBuilder withChunks() {
-		return withUpdatedHeader(Headers.REQUEST.TRANSFER_ENC, "chunked");
+		return (RequestBuilder) super.withChunks();
 	}
 
 	public RequestBuilder withReferer(String referer) {
-		return withUpdatedHeader(Headers.REQUEST.REFERER, referer);
+		return (RequestBuilder) withUpdatedHeader(Headers.REQUEST.REFERER, referer);
 	}
 
 	public RequestBuilder withContentType(String contentType) {
-		return withUpdatedHeader(Headers.REQUEST.CONTENT_TYPE, contentType);
+		return (RequestBuilder) super.withContentType(contentType);
 	}
 
 	public RequestBuilder withLength(long length) {
-		return withUpdatedHeader(Headers.RESPONSE.CONTENT_LEN, Long.toString(length));
+		return (RequestBuilder) withLength(length);
 	}
 
 	public RequestBuilder withCookie(Cookie cookie) {
-		return withHeader(Headers.REQUEST.COOKIE, cookie.toString());
+		return (RequestBuilder) withHeader(Headers.REQUEST.COOKIE, cookie.toString());
 	}
 
 	public RequestBuilder withCookies(Cookies cookies) {
@@ -120,19 +107,23 @@ public class RequestBuilder extends Builder<Request> {
 	}
 
 	public RequestBuilder withBody(String s) {
-		that.stringBody = s;
-		if (that.getContentLenght()<0) withLength(s.getBytes().length);
-		if (that.getHeaders().findFirst(Headers.REQUEST.CONTENT_TYPE)==null)
-			withContentType(MimeTypes.MIME_TEXT_HTML);
-		return this;
+		return (RequestBuilder) super.withBody(s);
+	}
+
+	public RequestBuilder withBody(byte[] b) {
+		return (RequestBuilder) super.withBody(b);
 	}
 
 	public RequestBuilder withBody(JSONObject json) {
-		that.jsonBody = json;
-		if (that.getContentLenght()<0) withLength(json.toString().getBytes().length);
-		if (that.getHeaders().findFirst(Headers.REQUEST.CONTENT_TYPE)==null)
-			withContentType(MimeTypes.MIME_APPLICATION_JSON);
-		return this;
+		return (RequestBuilder) super.withBody(json);
+	}
+
+	public RequestBuilder withBody(JSONArray json) {
+		return (RequestBuilder) super.withBody(json);
+	}
+
+	public RequestBuilder withBody(File f) throws FileNotFoundException {
+		return (RequestBuilder) super.withBody(f);
 	}
 
 	public RequestBuilder withRedirection(URI u) {
@@ -143,22 +134,23 @@ public class RequestBuilder extends Builder<Request> {
 		return this;
 	}
 
-	public RequestBuilder withBody(InputStream is) throws IOException {
+	@Override
+	public RequestBuilder withBody(InputStream is) {
 		// always read body
 		that.body = is;
 		long length = that.getContentLenght();
-		if (length > 0 && length <= that.IN_MEMORY_LIMIT) {
-			that.cachedBody = new byte[(int) that.getContentLenght()];
-			that.readBody(that.cachedBody);
-			that.body = null;
-		} else if(that.isChunked()) {
-			that.body = new ChunkedInputStream(is);
+		try {
+			if (length > 0 && length <= that.IN_MEMORY_LIMIT) {
+				byte[] cache = new byte[(int) that.getContentLenght()];
+				that.readBody(cache);
+				that.body = cache;
+			} else if (that.isChunked()) {
+				that.body = new ChunkedInputStream(is);
+			}
+		} catch (IOException ex) {
+			throw new HttpBadRequestException(ex.getMessage());
 		}
 		return this;
-	}
-
-	public RequestBuilder withBody(File file) throws IOException {
-		return withBody(new FileInputStream(file)).withLength(file.length()).withContentType(file.getName());
 	}
 
 }

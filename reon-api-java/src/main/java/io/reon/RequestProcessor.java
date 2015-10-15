@@ -7,13 +7,14 @@ import io.reon.http.Headers;
 import io.reon.http.HttpException;
 import io.reon.http.HttpInternalErrorException;
 import io.reon.http.HttpNotFoundException;
+import io.reon.http.HttpService;
 import io.reon.http.Method;
 import io.reon.http.MimeTypes;
 import io.reon.http.Request;
 import io.reon.http.Response;
 import io.reon.http.ResponseBuilder;
 
-public class RequestProcessor {
+public class RequestProcessor implements HttpService {
 	private static final String INDEX_HTML = "/index.html";
 	private static final String SERVICES_JSON = "/services.json";
 	private final List<? extends Endpoint> endpoints;
@@ -22,6 +23,15 @@ public class RequestProcessor {
 	public RequestProcessor(List<? extends Endpoint> endpoints, List<Filter> filters) {
 		this.endpoints = endpoints;
 		this.filters = filters;
+	}
+
+	@Override
+	public Response service(Request request) throws HttpException {
+		try {
+			return processRequest(request);
+		} catch (IOException e) {
+			throw new HttpInternalErrorException(e.getMessage(), e);
+		}
 	}
 
 	public Response processRequest(Request request) throws HttpException, IOException {
@@ -67,15 +77,7 @@ public class RequestProcessor {
 		String contentType = response.getContentType();
 		if (defaultContentType == null) defaultContentType = MimeTypes.MIME_TEXT_HTML;
 		if (contentType == null) contentType = defaultContentType;
-		// if content type is text, make sure charset is specified
-		if (!contentType.contains("charset=") && isTextContent(contentType)) {
-			contentType = contentType + "; charset=" + response.getCharset();
-		}
 		return ResponseBuilder.with(response).withContentType(contentType).build();
-	}
-
-	private static boolean isTextContent(String content) {
-		return content.contains("text") || content.contains("xml") || content.contains("json");
 	}
 
 	private Response filterAfter(String effectiveUri, Response response) {

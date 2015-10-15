@@ -1,47 +1,29 @@
 package io.reon.http;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-
-public class Response {
+public class Response extends Message {
 
 	private final StatusCode statusCode;
 
+	private final String version;
 	private String reason;
-
-	private Headers headers;
-
-	Object body;
 
 	String charset;
 
-	private OnCloseListener onCloseListener;
-	private OnErrorListener onErrorListener;
-
 	Response(StatusCode statusCode) {
+		this(HTTP_1_1, statusCode, null);
+	}
+
+	Response(String version, StatusCode statusCode, String reason) {
+		super(new Headers());
+		this.cookies = Cookies.parseServer(headers);
+		this.version = version;
 		this.charset = "UTF-8";
 		this.statusCode = statusCode;
+		this.reason = reason;
 	}
 
-	public Object getBody() {
-		return body;
-	}
-
-	public InputStream getBodyAsInputStream() {
-		if (body instanceof InputStream) {
-			return (InputStream) body;
-		} else {
-			return new ByteArrayInputStream(body.toString().getBytes());
-		}
-	}
-
-	public Headers getHeaders() {
-		if (headers == null) headers = new Headers();
-		return headers;
-	}
-
-	public boolean hasLength() {
-		return getHeaders().findFirst(Headers.RESPONSE.CONTENT_LEN) != null;
+	public boolean isOK() {
+		return statusCode == StatusCode.OK;
 	}
 
 	public String getCharset() {
@@ -52,50 +34,34 @@ public class Response {
 		return statusCode;
 	}
 
-	public String getContentType() {
-		return getHeaders().get(Headers.RESPONSE.CONTENT_TYPE);
-	}
-
-	public String getTransferEncoding() {
-		return getHeaders().get(Headers.RESPONSE.TRANSFER_ENC);
-	}
-
-	public void setLength(long length) {
-		if (length < 0) getHeaders().remove(Headers.REQUEST.CONTENT_LEN);
-		else getHeaders().update(Headers.RESPONSE.CONTENT_LEN, Long.toString(length));
-	}
-
-	public synchronized void setOnCloseListener(OnCloseListener listener) {
-		onCloseListener = listener;
-	}
-
-	public synchronized void setOnErrorListener(OnErrorListener listener) {
-		onErrorListener = listener;
-	}
-
-	public final synchronized void onClose() {
-		if (onCloseListener != null) onCloseListener.onClose(this);
-	}
-
-	public final synchronized void onError(Throwable cause) {
-		if (onErrorListener != null) onErrorListener.onError(this, cause);
-	}
-
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
 
+	private void ensureProperContentType() {
+		String contentType = getContentType();
+		// if content type is text, make sure charset is specified
+		if (contentType!=null && !contentType.contains("charset=") && isTextContent(contentType)) {
+			setContentType(contentType + "; charset=" + getCharset());
+		}
+	}
+
+	private static boolean isTextContent(String content) {
+		return content.contains("text") || content.contains("xml") || content.contains("json");
+	}
+
 	@Override
 	public String toString() {
+		ensureProperContentType();
 		StringBuilder sb = new StringBuilder();
+		sb.append(version);
+		sb.append(' ');
 		sb.append(statusCode.toString());
 		if (reason != null) {
 			sb.append(" - ");
 			sb.append(reason);
 		}
-		sb.append("\r\n");
-		if (headers != null) sb.append(headers.toString());
-		sb.append("\r\n");
+		sb.append(super.toString());
 		return sb.toString();
 	}
 }

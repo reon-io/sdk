@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.reon.http.Method;
 import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
 
 public class Service extends LocalService<WebAppContext> implements WebAppContext {
 	static final String ASSETS_CLASS_NAME = "io.reon.MyAssetInfo";
@@ -92,7 +93,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 			ls.connect(new LocalSocketAddress(SOCKET_ADDR));
 			LocalSocketConnection lsc = new LocalSocketConnection(ls);
 			OutputStream os = lsc.getOutputStream();
-			os.write(new Request(Method.TRACE, "#"+Long.toHexString(id)).toString().getBytes());
+			os.write(RequestBuilder.trace("#" + Long.toHexString(id)).build().toString().getBytes());
 			os.flush();
 			RequestTask worker = new RequestTask(lsc, getRequestProcessor());
 			executorService.execute(worker);

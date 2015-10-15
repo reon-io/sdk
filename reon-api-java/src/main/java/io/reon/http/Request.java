@@ -1,10 +1,5 @@
 package io.reon.http;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -13,21 +8,11 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Request {
-	public static final int BUFFER_LENGTH = 32 * 1024;
-	public static final int IN_MEMORY_LIMIT = 2 * 1024 * 1024; // 2 MB
-	public static final String HTTP_1_1 = "HTTP/1.1";
+public class Request extends Message {
 	private final Method method;
 	URI uri;
 	private final String protocolVersion;
-	private final Headers headers;
-	private final Cookies cookies;
-	String stringBody;
-	JSONObject jsonBody;
-	byte[] cachedBody;
-	InputStream body;
 	private Map<String,String> parameterMap = null;
-	private long contentLength = -1;
 
 	public Request(String url) {
 		this(Method.GET, URI.create(url), HTTP_1_1, new Headers());
@@ -37,38 +22,12 @@ public class Request {
 		this(m, URI.create(url), HTTP_1_1, new Headers());
 	}
 
-	private Request(Method method, URI uri, String protocolVersion, Headers headers) {
+	Request(Method method, URI uri, String protocolVersion, Headers headers) {
+		super(headers);
+		this.cookies = Cookies.parse(headers);
 		this.method = method;
 		this.uri = uri;
 		this.protocolVersion = protocolVersion;
-		this.headers = headers;
-		this.cookies = Cookies.parse(headers);
-	}
-
-	public boolean isCached() {
-		return (cachedBody != null);
-	}
-
-	public long getContentLenght() {
-		if (contentLength < 0 && headers != null) {
-			String lenStr = headers.get(Headers.REQUEST.CONTENT_LEN);
-			if (lenStr != null) contentLength = Long.parseLong(lenStr);
-		}
-		return contentLength;
-	}
-
-	public void setLength(long length) {
-		if (length < 0) getHeaders().remove(Headers.REQUEST.CONTENT_LEN);
-		else getHeaders().update(Headers.REQUEST.CONTENT_LEN, Long.toString(length));
-	}
-
-	public boolean isKeptAlive() {
-		Headers.Header keepAliveHeader = getHeaders().findFirst(Headers.REQUEST.CONNECTION);
-		return keepAliveHeader!=null && "keep-alive".equalsIgnoreCase(keepAliveHeader.getValue());
-	}
-
-	public boolean isChunked() {
-		return "chunked".equals(getHeaders().get(Headers.REQUEST.TRANSFER_ENC));
 	}
 
 	public Method getMethod() {
@@ -81,56 +40,6 @@ public class Request {
 
 	public String getProtocolVersion() {
 		return protocolVersion;
-	}
-
-	public Headers getHeaders() {
-		return headers;
-	}
-
-	public Cookies getCookies() {
-		return cookies;
-	}
-
-	public InputStream getBody() {
-		if (cachedBody != null) {
-			return new ByteArrayInputStream(cachedBody);
-		}
-		// As for now make sure we will give out body as InputStream only once
-		// TODO create filter for input stream to monitor how many bytes has been read
-		InputStream is = body;
-		body = null;
-		return is;
-	}
-
-	public String getBodyAsString() {
-		if (stringBody != null) return stringBody;
-		if (jsonBody != null) {
-			stringBody = jsonBody.toString();
-		} else {
-			if (cachedBody != null) stringBody = new String(cachedBody);
-		}
-		return stringBody;
-	}
-
-	public JSONObject getBodyAsJSON() {
-		if (jsonBody != null) return jsonBody;
-		try {
-			if (stringBody != null) {
-				jsonBody = new JSONObject(stringBody);
-			} else {
-				if (cachedBody != null)
-					jsonBody = new JSONObject(getBodyAsString());
-			}
-		} catch (JSONException ex) {
-			ex.printStackTrace();
-		}
-		return jsonBody;
-	}
-
-	public String getId() {
-		Headers.Header myHeader = getHeaders().findFirst(Headers.X.REON_ID);
-		if (myHeader!=null) return myHeader.getValue();
-		return null;
 	}
 
 	public boolean isRedirected() {
@@ -205,16 +114,17 @@ public class Request {
 	public long readBody(final byte[] target, long maxLength) throws IOException {
 		if (maxLength <= 0 || body == null) return -1;
 		long totalRead = 0;
+		InputStream is = getBodyAsInputStream();
 		while (totalRead < maxLength) {
 			long bytesToRead = maxLength - totalRead;
 			int len = BUFFER_LENGTH;
 			if (len > bytesToRead) len = (int) bytesToRead;
 			if (target != null) {
-				int bytesRead = body.read(target, (int) totalRead, len);
+				int bytesRead = is.read(target, (int) totalRead, len);
 				if (bytesRead < 0) break;
 				totalRead += bytesRead;
 			} else {
-				long bytesSkipped = body.skip(maxLength);
+				long bytesSkipped = is.skip(maxLength);
 				totalRead += bytesSkipped;
 			}
 		}
@@ -229,12 +139,9 @@ public class Request {
 		sb.append(uri.toString());
 		sb.append(' ');
 		sb.append(protocolVersion);
-		sb.append("\r\n");
-		if (headers != null) {
-			sb.append(headers.toString());
-			sb.append("\r\n");
-		}
-		sb.append("\r\n");
+		sb.append(CRLF);
+		if (headers != null) sb.append(headers.toString());
+		sb.append(CRLF);
 		return sb.toString();
 	}
 }

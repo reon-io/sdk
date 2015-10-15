@@ -48,12 +48,21 @@ public enum StatusCode {
 		this.message = message;
 	}
 
+	public static StatusCode byValue(int val) {
+		for(StatusCode sc: StatusCode.values()) if(sc.getCode()==val) return sc;
+		return null;
+	}
+
 	public String getMessage() {
 		return message;
 	}
 
+	public int getCode() {
+		return code;
+	}
+
 	@Override
 	public String toString() {
-		return "HTTP/1.1 " + code + " " + message;
+		return code + " " + message;
 	}
 }

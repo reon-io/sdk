@@ -26,7 +26,15 @@ public class Cookies {
     }
 
     public static Cookies parse(Headers headers) {
-        List<Headers.Header> cookieHeaders = headers.findAll(Headers.REQUEST.COOKIE);
+        return parse(headers, Headers.REQUEST.COOKIE);
+    }
+
+    public static Cookies parseServer(Headers headers) {
+        return parse(headers, Headers.RESPONSE.SET_COOKIE);
+    }
+
+    private static Cookies parse(Headers headers, String cookieTag) {
+        List<Headers.Header> cookieHeaders = headers.findAll(cookieTag);
         Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
         for (Headers.Header cookieHeader : cookieHeaders) {
             for(String cookieStr: cookieHeader.getValue().split(";")) {

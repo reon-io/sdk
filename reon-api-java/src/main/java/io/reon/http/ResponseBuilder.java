@@ -9,7 +9,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-public class ResponseBuilder extends Builder<Response> {
+public class ResponseBuilder extends MessageBuilder<Response> {
 
 	private ResponseBuilder(Response response) {
 		that = response;
@@ -47,7 +47,7 @@ public class ResponseBuilder extends Builder<Response> {
 		return startWith(StatusCode.SERVICE_UNAVAILABLE).withClose();
 	}
 
-	public static ResponseBuilder internalError() {
+	public static ResponseBuilder internalError(Exception e) {
 		return startWith(StatusCode.INTERNAL_ERROR).withClose();
 	}
 
@@ -60,34 +60,24 @@ public class ResponseBuilder extends Builder<Response> {
 	}
 
 	private ResponseBuilder withLocation(String location) {
-		return withUpdatedHeader(Headers.RESPONSE.LOCATION, location);
+		return (ResponseBuilder) withUpdatedHeader(Headers.RESPONSE.LOCATION, location);
 	}
 
-	public ResponseBuilder withHeader(String name, String value) {
-		that.getHeaders().add(name, value);
-		return this;
-	}
-
-	public ResponseBuilder withUpdatedHeader(String name, String value) {
-		that.getHeaders().update(name, value);
-		return this;
-	}
-
+	@Override
 	public ResponseBuilder withId(String id) {
-		if (id != null) withUpdatedHeader(Headers.X.REON_ID, id);
-		return this;
+		return (ResponseBuilder) super.withId(id);
 	}
 
 	public ResponseBuilder withKeepAlive() {
-		return withUpdatedHeader(Headers.RESPONSE.CONNECTION, "keep-alive");
+		return (ResponseBuilder) super.withKeepAlive();
 	}
 
 	public ResponseBuilder withClose() {
-		return withUpdatedHeader(Headers.RESPONSE.CONNECTION, "close");
+		return (ResponseBuilder) withUpdatedHeader(Headers.RESPONSE.CONNECTION, "close");
 	}
 
 	public ResponseBuilder withCookie(Cookie cookie) {
-		return withHeader(Headers.RESPONSE.SET_COOKIE, cookie.toString());
+		return (ResponseBuilder) withHeader(Headers.RESPONSE.SET_COOKIE, cookie.toString());
 	}
 
 	public ResponseBuilder withCookies(Cookies cookies) {
@@ -101,60 +91,57 @@ public class ResponseBuilder extends Builder<Response> {
 	}
 
 	public ResponseBuilder withContentType(String contentType) {
-		return withUpdatedHeader(Headers.RESPONSE.CONTENT_TYPE, contentType);
+		return (ResponseBuilder) super.withContentType(contentType);
 	}
 
 	public ResponseBuilder withContentTypeFrom(String filename) {
-		return withContentType(MimeTypes.getMimeType(filename));
+		return (ResponseBuilder) super.withContentTypeFrom(filename);
 	}
 
 	public ResponseBuilder withBody(File file) throws FileNotFoundException {
-		return withBody(new FileInputStream(file)).withLength(file.length()).withContentType(file.getName());
+		return (ResponseBuilder) super.withBody(file);
 	}
 
 	public ResponseBuilder withBody(String s) {
-		that.body = s;
-		return withLength(s.getBytes().length);
+		return (ResponseBuilder) super.withBody(s);
 	}
 
 	public ResponseBuilder withBody(InputStream is) {
-		that.body = is;
-		return this;
+		return (ResponseBuilder) super.withBody(is);
 	}
 
 	public ResponseBuilder withBody(byte[] data) {
-		return this.withBody(new ByteArrayInputStream(data)).withLength(data.length);
+		return (ResponseBuilder) super.withBody(data);
 	}
 
+	@Override
 	public ResponseBuilder withBody(JSONObject jsonObject) {
-		that.body = jsonObject;
-		return withContentType(MimeTypes.MIME_APPLICATION_JSON);
+		return (ResponseBuilder) super.withBody(jsonObject);
 	}
 
+	@Override
 	public ResponseBuilder withBody(JSONArray jsonObject) {
-		that.body = jsonObject;
-		return withContentType(MimeTypes.MIME_APPLICATION_JSON);
+		return (ResponseBuilder) super.withBody(jsonObject);
 	}
 
-	public ResponseBuilder withBody(Response r) {
-		that = r;
-		return this;
+	public ResponseBuilder withBody(Response response) {
+		return with(response);
 	}
 
 	public ResponseBuilder withLength(long length) {
-		return withUpdatedHeader(Headers.RESPONSE.CONTENT_LEN, Long.toString(length));
+		return (ResponseBuilder) withUpdatedHeader(Headers.RESPONSE.CONTENT_LEN, Long.toString(length));
 	}
 
 	public ResponseBuilder withChunks() {
-		return withTransferEncoding("chunked");
+		return (ResponseBuilder) super.withChunks();
 	}
 
 	public ResponseBuilder withIdentity() {
-		return withTransferEncoding("identity");
+		return (ResponseBuilder) super.withIdentity();
 	}
 
 	public ResponseBuilder withTransferEncoding(String value) {
-		return withUpdatedHeader(Headers.RESPONSE.TRANSFER_ENC, value);
+		return (ResponseBuilder) super.withTransferEncoding(value);
 	}
 
 	public ResponseBuilder withCharset(String charset) {
