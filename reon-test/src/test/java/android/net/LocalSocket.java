@@ -36,7 +36,8 @@ public class LocalSocket {
 	}
 
 	public void close() throws IOException {
-
+		inputStream.close();
+		outputStream.close();
 	}
 
 	public int getSendBufferSize() throws IOException {
