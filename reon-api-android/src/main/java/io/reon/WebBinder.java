@@ -2,6 +2,7 @@ package io.reon;
 
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
+import android.os.DeadObjectException;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.Parcel;
@@ -9,6 +10,7 @@ import android.os.RemoteException;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.HashSet;
 
 import io.reon.http.Client;
 import io.reon.http.MimeTypes;
@@ -21,7 +23,8 @@ public class WebBinder implements IBinder {
 	private final IBinder delegate;
 	private final String uri;
 	private final Client client;
-	private volatile boolean alive = true;
+	private final HashSet<DeathRecipient> deathRecipients;
+	private boolean alive;
 
 	public WebBinder(IBinder delegate, String uri) throws IOException {
 		this.delegate = delegate;
@@ -29,6 +32,8 @@ public class WebBinder implements IBinder {
 		LocalSocket ls = new LocalSocket();
 		ls.connect(new LocalSocketAddress(SOCKET_ADDR));
 		client = new Client(new LocalSocketConnection(ls));
+		deathRecipients = new HashSet<DeathRecipient>(4);
+		alive = true;
 	}
 
 	@Override
@@ -36,7 +41,7 @@ public class WebBinder implements IBinder {
 		return delegate.getInterfaceDescriptor();
 	}
 
-	private void died() {
+	private synchronized void died() {
 		if(alive) {
 			alive = false;
 			try {
@@ -44,6 +49,13 @@ public class WebBinder implements IBinder {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					for(DeathRecipient dr : deathRecipients) dr.binderDied();
+					deathRecipients.clear();
+				}
+			},"BinderDeathNotifier").start();
 		}
 	}
 
@@ -84,6 +96,7 @@ public class WebBinder implements IBinder {
 
 	@Override
 	public boolean transact(int opcode, Parcel req, Parcel resp, int flags) throws RemoteException {
+		if(!alive) throw new DeadObjectException();
 		try {
 			Response response = client.send(RequestBuilder
 					.post(uri + "/transact/" + opcode + "/" + flags)
@@ -106,13 +119,13 @@ public class WebBinder implements IBinder {
 	}
 
 	@Override
-	public void linkToDeath(DeathRecipient deathRecipient, int i) throws RemoteException {
-		delegate.linkToDeath(deathRecipient, i);
+	public synchronized void linkToDeath(DeathRecipient deathRecipient, int i) throws RemoteException {
+		deathRecipients.add(deathRecipient);
 	}
 
 	@Override
-	public boolean unlinkToDeath(DeathRecipient deathRecipient, int i) {
-		return delegate.unlinkToDeath(deathRecipient, i);
+	public synchronized boolean unlinkToDeath(DeathRecipient deathRecipient, int i) {
+		return deathRecipients.remove(deathRecipient);
 	}
 }
 

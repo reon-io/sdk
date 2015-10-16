@@ -9,7 +9,7 @@ public abstract class WebService extends android.app.Service {
 	public final static String EXTRA_TARGET = "uri";
 
 	@Override
-	public IBinder onBind(Intent intent) {
+	public final IBinder onBind(Intent intent) {
 		if (intent.hasExtra(EXTRA_TARGET)) {
 			try {
 				return new WebBinder(getBinder(), intent.getStringExtra(EXTRA_TARGET));
