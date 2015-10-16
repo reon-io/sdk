@@ -5,6 +5,7 @@ import java.util.regex.Pattern;
 
 import io.reon.http.Request;
 import io.reon.http.Response;
+import io.reon.Filter;
 
 public class $filter.generatedClassName extends Filter {
 #if ($filter.before)
