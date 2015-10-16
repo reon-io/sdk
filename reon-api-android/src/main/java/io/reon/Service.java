@@ -3,12 +3,9 @@ package io.reon;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.net.LocalSocket;
-import android.net.LocalSocketAddress;
 import android.util.Log;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -19,15 +16,14 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import io.reon.http.Method;
-import io.reon.http.Request;
-import io.reon.http.RequestBuilder;
 
 public class Service extends LocalService<WebAppContext> implements WebAppContext {
 	static final String ASSETS_CLASS_NAME = "io.reon.MyAssetInfo";
 	static final String SERVICES_CLASS_NAME = "io.reon.MyServices";
-	static final String SOCKET_ADDR = "/tmp/io.reon.server";
 
 	public static final String TAG = Service.class.getName();
+	public static final String SERVER_APP = "io.reon.server.app";
+	public static final String REON_SERVICE = "ReonService";
 
 	private static List<Endpoint.Info> endpointList = new ArrayList<Endpoint.Info>();
 	private static List<Filter> filterList = new ArrayList<Filter>();
@@ -63,23 +59,34 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 
 	private LocalServer localServer;
 
+	private volatile String authToken;
+
 	@Override
 	public Context getContext() {
 		return this;
 	}
 
+	private void newAuthToken() {
+		SecureRandom sr = new SecureRandom();
+		StringBuilder sb = new StringBuilder();
+		sb.append(Long.toHexString(sr.nextLong()));
+		sb.append(Long.toHexString(sr.nextLong()));
+		authToken = sb.toString();
+		Intent i = new Intent();
+		i.setComponent(new ComponentName(SERVER_APP, REON_SERVICE));
+		i.putExtra(WebAppContext.EXTRA_AUTH, authToken);
+		i.putExtra(WebAppContext.EXTRA_APP, getPackage());
+		startService(i);
+	}
+
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "Received intent from server");
+		if (authToken == null) newAuthToken();
 		if (executorService == null) {
-			executorService = new ThreadPoolExecutor(2, 16, 60, TimeUnit.SECONDS,
+			executorService = new ThreadPoolExecutor(1, 8, 30, TimeUnit.SECONDS,
 					new SynchronousQueue<Runnable>(), ThreadFactories.newWorkerThreadFactory());
 		}
-//		if(intent.getAction().equals(Intent.ACTION_CALL)) {
-//			// We have to connect to a socket to pull request from
-//			long requestId = intent.getLongExtra(Intent.EXTRA_UID, -1);
-//			requestLocal(requestId);
-//		}
 		if (localServer == null || localServer.isClosed()) {
 			localServer = new LocalServer(this, executorService);
 			executorService.submit(localServer);
@@ -87,25 +94,10 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 		return android.app.Service.START_NOT_STICKY;
 	}
 
-	protected void requestLocal(long id) {
-		try {
-			LocalSocket ls = new LocalSocket();
-			ls.connect(new LocalSocketAddress(SOCKET_ADDR));
-			LocalSocketConnection lsc = new LocalSocketConnection(ls);
-			OutputStream os = lsc.getOutputStream();
-			os.write(RequestBuilder.trace("#" + Long.toHexString(id)).build().toString().getBytes());
-			os.flush();
-			RequestTask worker = new RequestTask(lsc, getRequestProcessor());
-			executorService.execute(worker);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		Log.d(TAG, "Creating REON service");
+		Log.d(TAG, "Creating APP service");
 		if (requestProcessor == null) {
 			requestProcessor = new RequestProcessor(createEndpoints(), getFilters());
 		}
@@ -113,7 +105,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 
 	@Override
 	public void onDestroy() {
-		Log.d(TAG, "Destroying REON service");
+		Log.d(TAG, "Destroying APP service");
 		TempServiceConnection.terminateAll();
 		if (localServer != null) {
 			localServer.shutdown();
@@ -123,6 +115,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 			executorService.shutdown();
 			executorService = null;
 		}
+		authToken = null;
 	}
 
 	public Object bindService(ComponentName name) {
@@ -150,6 +143,16 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 		return assetLengthInfo;
 	}
 
+	@Override
+	public String getPackage() {
+		return getContext().getPackageName();
+	}
+
+	@Override
+	public String getAuthToken() {
+		return authToken;
+	}
+
 	private List<? extends Endpoint> createEndpoints() {
 		List<Endpoint> list = new LinkedList<Endpoint>();
 		for (Endpoint.Info info: endpointList) {
@@ -164,7 +167,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 		return list;
 	}
 
-	public RequestProcessor getRequestProcessor() {
+	public RequestProcessor getHttpService() {
 		return requestProcessor;
 	}
 }

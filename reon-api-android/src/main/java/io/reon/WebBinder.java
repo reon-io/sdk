@@ -19,7 +19,6 @@ import io.reon.http.Response;
 
 public class WebBinder implements IBinder {
 
-	private static final java.lang.String SOCKET_ADDR = "/tmp/io.reon.server";
 	private final IBinder delegate;
 	private final String uri;
 	private final Client client;
@@ -30,7 +29,7 @@ public class WebBinder implements IBinder {
 		this.delegate = delegate;
 		this.uri = uri;
 		LocalSocket ls = new LocalSocket();
-		ls.connect(new LocalSocketAddress(SOCKET_ADDR));
+		ls.connect(new LocalSocketAddress(Client.DEFAULT_SERVER_ADDR));
 		client = new Client(new LocalSocketConnection(ls));
 		deathRecipients = new HashSet<DeathRecipient>(4);
 		alive = true;

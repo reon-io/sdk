@@ -11,7 +11,7 @@ public abstract class Context {
 	}
 
 	public String getPackageName() {
-		return "pkg";
+		return "test";
 	}
 
 	public PackageManager getPackageManager() {
@@ -20,5 +20,9 @@ public abstract class Context {
 
 	public ApplicationInfo getApplicationInfo() {
 		return new ApplicationInfo();
+	}
+
+	public ComponentName startService(Intent i) {
+		return null;
 	}
 }

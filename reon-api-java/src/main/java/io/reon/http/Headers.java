@@ -160,7 +160,7 @@ public class Headers {
 			if (value == null) remove(header);
 			else header.setValue(value);
 		}
-		else add(name, value);
+		else if(value!=null) add(name, value);
 	}
 
 	public void setCookie(Cookie cookie) {

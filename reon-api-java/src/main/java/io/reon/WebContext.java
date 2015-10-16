@@ -2,13 +2,19 @@ package io.reon;
 
 import java.util.List;
 
+import io.reon.http.HttpService;
+
 public interface WebContext {
 
 	List<Endpoint.Info> getEndpointInfos();
 
 	List<Filter> getFilters();
 
-	RequestProcessor getRequestProcessor();
+	HttpService getHttpService();
 
 	AssetLengthInfo getAssetInfo();
+
+	String getPackage();
+
+	String getAuthToken();
 }

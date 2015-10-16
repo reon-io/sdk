@@ -35,9 +35,8 @@ public class LocalServer implements Runnable {
 	private void openLocalServerSocket(String packageName) {
 		try {
 			if (serverSocket == null || serverSocket.getFileDescriptor() == null) {
-				String socketName = "/tmp/" + packageName;
-				Log.d(LOG_TAG, "opening local socket server: " + socketName);
-				serverSocket = new LocalServerSocket("/tmp/" + packageName);
+				Log.d(LOG_TAG, "opening local socket server: " + packageName);
+				serverSocket = new LocalServerSocket(packageName);
 			}
 			Log.d(LOG_TAG, "Binding localServerSocket " + serverSocket);
 		} catch (IOException e) {
@@ -51,7 +50,7 @@ public class LocalServer implements Runnable {
 			try {
 				LocalSocket ls = serverSocket.accept();
 //				Log.d(LOG_TAG, "new connection on local socket");
-				RequestTask worker = new RequestTask(new LocalSocketConnection(ls), context.getRequestProcessor());
+				RequestTask worker = new RequestTask(new LocalSocketConnection(ls), context);
 				executor.execute(worker);
 			} catch (IOException e) {
 				Log.e(LOG_TAG, "Error while handling request by App: " + e, e);

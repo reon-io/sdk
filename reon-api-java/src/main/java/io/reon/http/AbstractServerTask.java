@@ -15,6 +15,8 @@ public abstract class AbstractServerTask implements Runnable {
 
 	protected abstract HttpService matchServicePath(String path);
 
+	protected abstract Response authorize(Request request) throws HttpException;
+
 	@Override
 	public void run() {
 		try {
@@ -33,11 +35,14 @@ public abstract class AbstractServerTask implements Runnable {
 					}
 					if (request != null) {
 						requestId = request.getId();
-						HttpService serv = matchServicePath(request.getURI().getPath());
-						if(serv != null) response = serv.service(request);
-						else response = ResponseBuilder.notFound().build();
+						response = authorize(request);
+						if (response == null) {
+							HttpService serv = matchServicePath(request.getURI().getPath());
+							if (serv != null) response = serv.service(request);
+							else response = ResponseBuilder.notFound().build();
+						}
 						response.setId(requestId);
-						writer.write(serv.service(request));
+						writer.write(response);
 						keepAlive = request.isKeptAlive();
 						// make sure request body has been read
 						if (keepAlive) request.readBody();

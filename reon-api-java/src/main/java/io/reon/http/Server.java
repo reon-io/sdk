@@ -44,6 +44,11 @@ public class Server {
 			if(service==null) service = services.get("/");
 			return service;
 		}
+
+		@Override
+		protected Response authorize(Request request) {
+			return null;
+		}
 	}
 
 }

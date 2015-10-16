@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 public class Client implements Closeable {
+	public static final String DEFAULT_SERVER_ADDR = "io.reon.server.app";
 	private final Connection conn;
 	private final MessageWriter writer;
 	private final ResponseReader reader;

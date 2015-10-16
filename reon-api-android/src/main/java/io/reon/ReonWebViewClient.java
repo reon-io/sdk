@@ -28,7 +28,7 @@ import io.reon.http.ResponseBuilder;
 
 public class ReonWebViewClient extends WebViewClient {
 	private static final String LOG_TAG = ReonWebViewClient.class.getName();
-	private static final String PREFIX = "http://reon/";
+	private static final String PREFIX = "http://localhost/";
 	private final WebContext webContext;
 	private final String root;
 	private WebViewClient delegate = new WebViewClient();
@@ -91,7 +91,7 @@ public class ReonWebViewClient extends WebViewClient {
 			request.getHeaders().update(Headers.REQUEST.COOKIE, cookies.get());
 			try {
 //				Log.d(LOG_TAG, "Request: "+request.getURI().toString());
-				final Response response = webContext.getRequestProcessor().processRequest(request);
+				final Response response = webContext.getHttpService().service(request);
 //				Log.d(LOG_TAG, "Response: "+response.toString());
 				handler.post( new Runnable() {
 					@Override
@@ -105,8 +105,6 @@ public class ReonWebViewClient extends WebViewClient {
 				});
 
 				return createWebResponse(ResponseBuilder.with(response).withIdentity().build());
-			} catch (IOException e) {
-				Log.e(LOG_TAG, e.getMessage(), e);
 			} catch (HttpException e) {
 				Log.e(LOG_TAG, e.getMessage(), e);
 			}
