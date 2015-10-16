@@ -1,5 +1,5 @@
 #* @vtlvariable name="filter" type="io.reon.processor.model.ParsedFilter" *#
-package io.reon;
+package $filter.package;
 
 import java.util.regex.Pattern;
 

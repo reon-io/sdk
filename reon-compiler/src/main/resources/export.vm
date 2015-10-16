@@ -1,0 +1,39 @@
+#* @vtlvariable name="export" type="io.reon.processor.model.Exported" *#
+/*
+ * GENERATED FILE
+ */
+package $export.package;
+
+import android.os.IInterface;
+
+import io.reon.api.*;
+import io.reon.http.*;
+
+public class $export.generatedClassName {
+	@POST("/$export.destClassSimple/transact/:id/:flags")
+	@Produces(MimeTypes.MIME_APPLICATION_OCTET_STREAM)
+	@BindService("$export.destClassSimple :service")
+	public byte[] transact(int id, IInterface service, Request request, int flags) {
+		byte[] retval;
+		android.os.Parcel data = android.os.Parcel.obtain();
+		android.os.Parcel reply = android.os.Parcel.obtain();
+		try {
+			byte[] parcel = new byte[(int) request.getContentLenght()];
+			request.readBody(parcel);
+			data.unmarshall(parcel, 0, parcel.length);
+			service.asBinder().transact(id, data, reply, flags);
+		} catch (Exception ex) {
+			reply.writeException(ex);
+		} finally {
+			retval = reply.marshall();
+			reply.recycle();
+			data.recycle();
+		}
+		return retval;
+	}
+
+	@GET("/$export.destClassSimple/ping")
+	public Response ping() {
+		return ResponseBuilder.ok().build();
+	}
+}

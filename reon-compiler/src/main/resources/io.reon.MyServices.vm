@@ -7,10 +7,10 @@ import io.reon.http.Method;
 public class MyServices {
 	static {
 #foreach( $parsedMethod in $endpoints )
-		Service.addEndpointInfo(new Endpoint.Info(Method.$parsedMethod.httpMethod, "$parsedMethod.httpUri", ${parsedMethod.generatedClassName}.class));
+		Service.addEndpointInfo(new Endpoint.Info(Method.$parsedMethod.httpMethod, "$parsedMethod.httpUri", ${parsedMethod.package}.${parsedMethod.generatedClassName}.class));
 #end
 #foreach( $parsedFilter in $filters )
-		Service.addFilter(new ${parsedFilter.generatedClassName}());
+		Service.addFilter(new ${parsedFilter.package}.${parsedFilter.generatedClassName}());
 #end
 	}
 }

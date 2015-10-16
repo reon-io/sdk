@@ -2,7 +2,7 @@
 /*
  * GENERATED FILE
  */
-package io.reon;
+package $parsedMethod.package;
 
 import java.io.*;
 
@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.reon.*;
 import io.reon.http.*;
 
 public class $parsedMethod.generatedClassName extends AppEndpoint {

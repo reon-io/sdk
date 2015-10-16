@@ -38,7 +38,8 @@ public class ParsedMethod {
 		DEFAULT_VALUES = Collections.unmodifiableMap(m);
 	}
 
-	private final String destClass;
+	protected final String destClass;
+
 	private final String destMethod;
 	private final String destMethodRetType;
 	private final List<ParsedParam> params;
@@ -227,4 +228,7 @@ public class ParsedMethod {
 		return typeName;
 	}
 
+	public String getPackage() {
+		return getDestClass().substring(0, getDestClass().lastIndexOf("."));
+	}
 }

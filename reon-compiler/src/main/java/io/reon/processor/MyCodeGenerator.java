@@ -21,6 +21,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.tools.JavaFileObject;
 
 import io.reon.processor.model.AssetFile;
+import io.reon.processor.model.Exported;
 import io.reon.processor.model.ParsedFilter;
 import io.reon.processor.model.ParsedMethod;
 import io.reon.processor.model.Provider;
@@ -45,10 +46,11 @@ public class MyCodeGenerator extends ProcessingEnvAware {
 		super(processingEnvironment);
 	}
 
-	public void generateCode(List<ParsedMethod> parsedMethods, List<Provider> providers, List<ParsedFilter> filters) {
+	public void generateCode(List<ParsedMethod> parsedMethods, List<Provider> providers, List<ParsedFilter> filters, List<Exported> exports) {
 		VelocityEngine ve = instantiateVelocityEngine();
-		if (!providers.isEmpty()) {
+		if (!providers.isEmpty() || !exports.isEmpty()) {
 			generateProviders(ve, providers);
+			generateExports(ve, exports);
 		} else {
 			generateEndpoints(ve, parsedMethods);
 			generateFilters(ve, filters);
@@ -61,7 +63,7 @@ public class MyCodeGenerator extends ProcessingEnvAware {
 		for (ParsedFilter filter : filters) {
 			Context ctx = createContext();
 			ctx.put("filter", filter);
-			generateFromTemplate(ve, ctx, PKG_PREFIX + filter.getGeneratedClassName(), "filter.vm");
+			generateFromTemplate(ve, ctx, filter.getPackage() + "." + filter.getGeneratedClassName(), "filter.vm");
 		}
 	}
 
@@ -73,11 +75,19 @@ public class MyCodeGenerator extends ProcessingEnvAware {
 		}
 	}
 
+	private void generateExports(VelocityEngine ve, List<Exported> exports) {
+		for (Exported export : exports) {
+			Context ctx = createContext();
+			ctx.put("export", export);
+			generateFromTemplate(ve, ctx, export.getPackage() + "." + export.getGeneratedClassName(), "export.vm");
+		}
+	}
+
 	private void generateEndpoints(VelocityEngine ve, List<ParsedMethod> parsedMethods) {
 		for (ParsedMethod pm : parsedMethods) {
 			Context ctx = createContext();
 			ctx.put("parsedMethod", pm);
-			generateFromTemplate(ve, ctx, PKG_PREFIX + pm.getGeneratedClassName(), "endpoint.vm");
+			generateFromTemplate(ve, ctx, pm.getPackage() + "." + pm.getGeneratedClassName(), "endpoint.vm");
 		}
 	}
 

@@ -25,11 +25,13 @@ import io.reon.api.Before;
 import io.reon.api.BindService;
 import io.reon.api.ContentProvider;
 import io.reon.api.DELETE;
+import io.reon.api.Export;
 import io.reon.api.GET;
 import io.reon.api.POST;
 import io.reon.api.PUT;
 import io.reon.api.Produces;
 import io.reon.http.Method;
+import io.reon.processor.model.Exported;
 import io.reon.processor.model.ParsedFilter;
 import io.reon.processor.model.ParsedMethod;
 import io.reon.processor.model.Provider;
@@ -37,16 +39,18 @@ import io.reon.processor.model.Provider;
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class MyAnnotationProcessor extends AbstractProcessor {
 	private final List<InternalProcessor> processors;
-	private List<ParsedMethod> parsedMethods = new LinkedList<ParsedMethod>();
-	private List<ParsedFilter> parsedFilters = new LinkedList<ParsedFilter>();
-	private Set<ExecutableElement> processed = new HashSet<ExecutableElement>();
+	private List<ParsedMethod> parsedMethods = new ArrayList<>();
+	private List<ParsedFilter> parsedFilters = new ArrayList<>();
+	private Set<ExecutableElement> processed = new HashSet<>();
 	private List<Provider> providers;
+	private List<Exported> exports;
 
 	public MyAnnotationProcessor() {
 		ArrayList<InternalProcessor> p = new ArrayList<InternalProcessor>();
 		p.add(new HttpMethodProcessor());
 		p.add(new ContentProviderProcessor());
 		p.add(new FilterProcessor());
+		p.add(new ExportProcessor());
 		processors = Collections.unmodifiableList(p);
 	}
 
@@ -72,14 +76,15 @@ public class MyAnnotationProcessor extends AbstractProcessor {
 		if (annotations.isEmpty()) return false;
 		MyCodeGenerator mCodeGenerator = new MyCodeGenerator(processingEnv);
 		try {
-			providers = new LinkedList<Provider>();
+			providers = new ArrayList<>();
+			exports = new ArrayList<>();
 			for (TypeElement annotation : annotations) {
 //				System.out.println("Processing: " + annotation.getQualifiedName().toString());
 				for(InternalProcessor ip: processors) {
 					if (ip.consume(annotation, roundEnv)) break;
 				}
 			}
-			mCodeGenerator.generateCode(parsedMethods, providers, parsedFilters);
+			mCodeGenerator.generateCode(parsedMethods, providers, parsedFilters, exports);
 			return true;
 		} catch (Exception e) {
 //			e.printStackTrace();
@@ -213,6 +218,28 @@ public class MyAnnotationProcessor extends AbstractProcessor {
 				processed = true;
 			}
 			return processed;
+		}
+	}
+
+	private class ExportProcessor extends InternalProcessor {
+		private static final String EXPORTED_CLASS = "io.reon.WebService";
+		protected ExportProcessor() {
+			super(Arrays.asList(Export.class.getName()));
+		}
+
+		@Override
+		protected boolean process(TypeElement annotation, RoundEnvironment roundEnv) {
+			for (Element element : roundEnv.getElementsAnnotatedWith(annotation)) {
+				TypeElement ce = (TypeElement) element;
+				if (ce.getQualifiedName().toString().equals(""))
+					error("Annotation @" + annotation.getSimpleName() + " is not allowed for local or anonymous classes!");
+				if (!ce.getSuperclass().toString().equals(EXPORTED_CLASS)) {
+					error("Only classes extending " +EXPORTED_CLASS+ " can be annotated wit @" + annotation.getSimpleName() + "!");
+				}
+				Exported exp = new Exported(ce.getQualifiedName().toString());
+				exports.add(exp);
+			}
+			return true;
 		}
 	}
 
