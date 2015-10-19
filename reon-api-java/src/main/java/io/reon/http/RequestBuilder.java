@@ -137,6 +137,7 @@ public class RequestBuilder extends MessageBuilder<Request> {
 	@Override
 	public RequestBuilder withBody(InputStream is) {
 		// always read body
+		if (that.isChunked()) is = new ChunkedInputStream(is);
 		that.body = is;
 		long length = that.getContentLenght();
 		try {
@@ -144,8 +145,6 @@ public class RequestBuilder extends MessageBuilder<Request> {
 				byte[] cache = new byte[(int) that.getContentLenght()];
 				that.readBody(cache);
 				that.body = cache;
-			} else if (that.isChunked()) {
-				that.body = new ChunkedInputStream(is);
 			}
 		} catch (IOException ex) {
 			throw new HttpBadRequestException(ex.getMessage());
