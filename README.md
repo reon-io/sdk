@@ -75,32 +75,32 @@ This context is only available to REON.IO app and can't be used externaly as it 
 a security token.
 
 You can easily define web services through REON.IO annotations, which are:
-* @@GET
-* @@PUT
-* @@POST
-* @@DELETE
+* @GET
+* @PUT
+* @POST
+* @DELETE
 for servicing basic HTTP methods, and:
-* @@Produces
-* @@After
-* @@Before
+* @Produces
+* @After
+* @Before
 for supporting different schemes of service requests, along with the support for the Android platform in the
 form of:
-* @@BindService
-* @@ContentProvider
-* @@Export
+* @BindService
+* @ContentProvider
+* @Export
 
 These annotations will define service endpoints that will be created and served by your application. They are
 similar in concept with [JAX-RS](http://en.wikipedia.org/wiki/Java_API_for_RESTful_Web_Services) annotations,
 but are much more simple and easy to use.
 
-### @@GET, @@PUT, @@POST, @@DELETE
+### @GET, @PUT, @POST, @DELETE
 
-### @@Produces
+### @Produces
 
-### @@Before, @@After
+### @Before, @After
 
-### @@BindService
+### @BindService
 
-### @@ContentProvider
+### @ContentProvider
 
-### @@Export
+### @Export
