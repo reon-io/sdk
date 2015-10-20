@@ -27,6 +27,7 @@ You don't always need to do this as there are prebuilt artifacts available at
 ## How to use
 
 To integrate REON.IO SDK with your application add the following dependencies to your main build.gradle file:
+
 ```
 buildscript {
 	repositories {
@@ -71,6 +72,7 @@ package name and by convention all its web services are placed under adequate we
 ```
 http://localhost/my.reon.app.package
 ```
+
 This context is only available to REON.IO app and can't be used externaly as it requires authorization by
 a security token.
 
@@ -79,12 +81,16 @@ You can easily define web services through REON.IO annotations, which are:
 * @PUT
 * @POST
 * @DELETE
+
 for servicing basic HTTP methods, and:
+
 * @Produces
 * @After
 * @Before
+
 for supporting different schemes of service requests, along with the support for the Android platform in the
 form of:
+
 * @BindService
 * @ContentProvider
 * @Export
