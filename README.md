@@ -1,4 +1,5 @@
 # REON.IO SDK
+[![Build Status](https://travis-ci.org/reon-io/reon-sdk.svg)](https://travis-ci.org/reon-io/reon-sdk)
 
 (work in progress)
 
@@ -155,12 +156,82 @@ You cant throw any type of exception from the body of a method, however only *Ht
 
 ### @Produces
 
-This annotation specifies the default value of MIME data type as returned from the service method. If it is not changed in a method body it will be present in HTTP response as its *Content-Type* header value.
+This annotation specifies the default value of MIME data type as returned from the service method. If it is not changed in a method body it will be present in HTTP response as its *Content-Type* header value. The default value if this annotation is not present is "text/html".
+
+### @Produces example
+
+```java
+@GET("/ex2/file.pdf")
+@Produces("application/pdf")
+public InputStream file(Context ctx) throws IOException {
+	return ctx.getAssets().open("file.pdf");
+}
+```
+Please note that this is just an example and you wouldn't have to this in such a way. First of all, if you return a file the type will be inflicted from its content and secondly, you don't need to serve anything from the assets as this is done automatically for you. If you place a file in your assets under /reon context it will be served as a file from the context of your app. So all of this could be achieved by placing file.pdf in your assets in /reon/ex2 directory.
 
 ### @Before, @After
 
+This annotations give you the possibility to do something before and after servicing the request. For example you might need to setup a camera before you open a stream or you need to dispose of objects after you stop the streaming.
+
+As an argument to this annotation you pass a regular expression matching the requests. The methods act as decorators to the Requests and Response objects.
+
+#### @Before, @After examples
+```java
+@Before("/sms.*")
+public Request before(Request r) {
+	System.out.println("Before: "+r.getURI().toString());
+	return r;
+}
+
+@After("/sms.*")
+public Response after(Response r) {
+	System.out.println("After: "+r.getContentType());
+	return r;
+}
+```
+
 ### @BindService
+
+This annotation will do all heavy lifting when binding to remote or local services in Android. All you need to do is to specify the service name as a simple name or component name and optionaly give name of the parameter. Look at the examples below.
+
+#### @BindService example with simple name
+```java
+@GET("/camera")
+@BindService("StreamingService")
+@Produces(MimeTypes.MIME_VIDEO_MPEG)
+public InputStream camera(Context ctx, Streaming streamingService) throws HttpServiceUnavailableException {
+    ...
+}
+```
+In this example the service is bound by a simple name and without parameter name. It is matched by a convention with an argument of the same name as a service and the type is cast to local interface for this service.
+
+```java
+@GET("/camera")
+@BindService("io.reon.camera/.StreamingService :streaming")
+public InputStream camera(Context ctx, IStreaming streaming) throws HttpServiceUnavailableException {
+    ...
+}
+```
+In this example the service is bound by a component name (specifying package name and class name of an app). The parameter name is also spefied and matched with the argument of a method with the same name. The type is cast to remote interface specified in AIDL file.
 
 ### @ContentProvider
 
+This annotation will give you a possibility of using any content provider as a web service. For this you only need to declare the name of the content provider. All RESTful service endpoints for CRUD will be generated unless you want to restrict to specified methods like this:
+
+```java
+@ContentProvider(value = "sms", methods = {Method.GET, Method.POST})
+public class SmsExample {
+...
+}
+```
+
 ### @Export
+
+This annotation will expose android service (the service must extend io.reon.WebService class) as a web service inside you application. This will enable you to use remote services of your application on different machines as if it were present on your device. All you have to do is to annotate your service class. As a result you could bind to remote machine running this service just by specifying target machine as an extra value of your binding intent. For this to work REON.IO app has to be present in the system as it will act as a proxy between your applications instances.
+
+#### @Export example
+```java
+@Export
+public class RemoteService extends io.reon.WebService {
+}
+```
