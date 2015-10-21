@@ -152,7 +152,7 @@ As for method return types you can use all parameter types plus *Response* (simp
 
 #### Exceptions
 
-You cant throw any type of exception from the body of a method, however only *HttpException* type from *io.reon.http* package will be interpreted as a relevant HTTP reponse error type.
+You can throw any type of exception from the body of a method, however only *HttpException* type from *io.reon.http* package will be interpreted as a relevant HTTP reponse error type.
 
 ### @Produces
 
