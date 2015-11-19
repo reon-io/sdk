@@ -108,21 +108,15 @@ public class ChunkedInputStream extends InputStream {
 		if (this.closed) {
 			throw new IOException("Attempted read from closed stream.");
 		}
-		if (this.eof) {
-			return -1;
-		}
+		if (this.eof) return -1;
 		if (state != CHUNK_DATA) {
 			nextChunk();
-			if (this.eof) {
-				return -1;
-			}
+			if (this.eof) return -1;
 		}
 		final int b = in.read();
 		if (b != -1) {
 			pos++;
-			if (pos >= chunkSize) {
-				state = CHUNK_CRLF;
-			}
+			if (pos >= chunkSize) state = CHUNK_CRLF;
 		}
 		return b;
 	}
@@ -140,25 +134,20 @@ public class ChunkedInputStream extends InputStream {
 	@Override
 	public int read (final byte[] b, final int off, final int len) throws IOException {
 
-		if (closed) {
-			throw new IOException("Attempted read from closed stream.");
-		}
+		if (closed) throw new IOException("Attempted read from closed stream.");
 
-		if (eof) {
-			return -1;
-		}
+		if (eof) return -1;
+
 		if (state != CHUNK_DATA) {
 			nextChunk();
-			if (eof) {
-				return -1;
-			}
+			if (eof) return -1;
 		}
+
 		final int bytesRead = in.read(b, off, Math.min(len, chunkSize - pos));
+
 		if (bytesRead != -1) {
 			pos += bytesRead;
-			if (pos >= chunkSize) {
-				state = CHUNK_CRLF;
-			}
+			if (pos >= chunkSize) state = CHUNK_CRLF;
 			return bytesRead;
 		} else {
 			eof = true;
@@ -195,19 +184,17 @@ public class ChunkedInputStream extends InputStream {
 	 * @throws IOException in case of an I/O error
 	 */
 	private void nextChunk() throws IOException {
-		if (state == CHUNK_INVALID) {
-			throw new IOException("Corrupt data stream");
-		}
+		if (state == CHUNK_INVALID) throw new IOException("Corrupt data stream");
+
 		try {
 			chunkSize = getChunkSize();
-			if (chunkSize < 0) {
-				throw new IOException("Negative chunk size");
-			}
+			if (chunkSize < 0) throw new IOException("Negative chunk size");
+
 			state = CHUNK_DATA;
 			pos = 0;
-			if (chunkSize == 0) {
-				eof = true;
-			}
+
+			if (chunkSize == 0) eof = true;
+
 		} catch (IOException ex) {
 			state = CHUNK_INVALID;
 			throw ex;

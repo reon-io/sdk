@@ -55,7 +55,7 @@ public class Headers {
 		public static final String ACCEPT_RANGES = "Accept-Ranges";
 		public static final String AGE = "Age";
 		public static final String ALLOW = "Allow";
-		public static final String CACHE_CTRL = "Cache-Control";
+		public static final String CACHE_CTRL = REQUEST.CACHE_CTRL;
 		public static final String CONNECTION = REQUEST.CONNECTION;
 		public static final String CONTENT_ENC = "Content-Encoding";
 		public static final String CONTENT_LANG = "Content-Language";

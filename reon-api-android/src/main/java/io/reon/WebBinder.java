@@ -63,7 +63,6 @@ public class WebBinder implements IBinder {
 		try {
 			Response response = client.send(RequestBuilder
 					.post(uri + "/ping")
-					.withKeepAlive()
 					.build());
 			if(response.isOK()) return true;
 			else died();
@@ -100,7 +99,6 @@ public class WebBinder implements IBinder {
 			Response response = client.send(RequestBuilder
 					.post(uri + "/transact/" + opcode + "/" + flags)
 					.withContentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM)
-					.withKeepAlive()
 					.withBody(req.marshall())
 					.build());
 			if(response.isOK()) {
