@@ -1,6 +1,8 @@
 package io.reon.http;
 
 public enum StatusCode {
+	CONTINUE(100, "Continue"),
+	SWITCHING(101, "Switching protocols"),
 	OK(200, "OK"),
 	CREATED(201, "Created"),
 	ACCEPTED(202, "Accepted"),
