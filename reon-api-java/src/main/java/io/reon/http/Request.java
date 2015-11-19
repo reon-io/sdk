@@ -11,11 +11,10 @@ import java.util.Map;
 public class Request extends Message {
 	private final Method method;
 	URI uri;
-	private final String protocolVersion;
 	private Map<String,String> parameterMap = null;
 
 	public Request(String url) {
-		this(Method.GET, URI.create(url), HTTP_1_1, new Headers());
+		this(Method.GET, url);
 	}
 
 	public Request(Method m, String url) {
@@ -23,11 +22,10 @@ public class Request extends Message {
 	}
 
 	Request(Method method, URI uri, String protocolVersion, Headers headers) {
-		super(headers);
+		super(protocolVersion, headers);
 		this.cookies = Cookies.parse(headers);
 		this.method = method;
 		this.uri = uri;
-		this.protocolVersion = protocolVersion;
 	}
 
 	public Method getMethod() {
@@ -38,12 +36,15 @@ public class Request extends Message {
 		return uri;
 	}
 
-	public String getProtocolVersion() {
-		return protocolVersion;
-	}
-
 	public boolean isRedirected() {
 		return getHeaders().findFirst(Headers.REQUEST.ORIGIN) != null;
+	}
+
+	public boolean isContinueExpected() {
+		for(Headers.Header h: getHeaders().findAll(Headers.REQUEST.EXPECT)) {
+			if (h.getValue().equalsIgnoreCase("100-continue")) return true;
+		}
+		return false;
 	}
 
 	public Map<String, String> getParameterMap() {
@@ -138,7 +139,7 @@ public class Request extends Message {
 		sb.append(' ');
 		sb.append(uri.toString());
 		sb.append(' ');
-		sb.append(protocolVersion);
+		sb.append(getProtocolVersion());
 		sb.append(CRLF);
 		if (headers != null) sb.append(headers.toString());
 		sb.append(CRLF);

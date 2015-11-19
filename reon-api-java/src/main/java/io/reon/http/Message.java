@@ -13,9 +13,12 @@ public class Message {
 	public static final int BUFFER_LENGTH = 32 * 1024;
 	public static final int IN_MEMORY_LIMIT = 2 * 1024 * 1024; // 2 MB
 	public static final String HTTP_1_1 = "HTTP/1.1";
+	public static final String HTTP_1_0 = "HTTP/1.0";
 	public static final String CHUNKED = "chunked";
 	public static final String IDENTITY = "identity";
 	public static final String KEEP_ALIVE = "keep-alive";
+	public static final String CLOSE = "close";
+	private final String version;
 	protected final Headers headers;
 	protected Cookies cookies;
 	Object body; // can be InputStream or byte[]
@@ -23,12 +26,17 @@ public class Message {
 	private OnCloseListener onCloseListener;
 	private OnErrorListener onErrorListener;
 
-	public Message(Headers headers) {
+	public Message(String version, Headers headers) {
+		this.version = version;
 		this.headers = headers;
 	}
 
 	public boolean isCached() {
 		return  body != null && (body instanceof byte[]);
+	}
+
+	public String getProtocolVersion() {
+		return version;
 	}
 
 	public long getContentLenght() {
@@ -55,6 +63,15 @@ public class Message {
 
 	public boolean isKeptAlive() {
 		return KEEP_ALIVE.equalsIgnoreCase(getHeaders().get(Headers.REQUEST.CONNECTION));
+	}
+
+	public boolean isClosing() {
+		return CLOSE.equalsIgnoreCase(getHeaders().get(Headers.REQUEST.CONNECTION));
+	}
+
+	public boolean shouldClose() {
+		if (HTTP_1_0.equals(getProtocolVersion())) return !isKeptAlive();
+		else return isClosing();
 	}
 
 	public boolean isChunked() {

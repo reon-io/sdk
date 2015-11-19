@@ -4,7 +4,6 @@ public class Response extends Message {
 
 	private final StatusCode statusCode;
 
-	private final String version;
 	private String reason;
 
 	String charset;
@@ -14,9 +13,12 @@ public class Response extends Message {
 	}
 
 	Response(String version, StatusCode statusCode, String reason) {
-		super(new Headers());
+		this(version, statusCode, reason, new Headers());
+	}
+
+	Response(String version, StatusCode statusCode, String reason, Headers headers) {
+		super(version, headers);
 		this.cookies = Cookies.parseServer(headers);
-		this.version = version;
 		this.charset = "UTF-8";
 		this.statusCode = statusCode;
 		this.reason = reason;
@@ -54,7 +56,7 @@ public class Response extends Message {
 	public String toString() {
 		ensureProperContentType();
 		StringBuilder sb = new StringBuilder();
-		sb.append(version);
+		sb.append(getProtocolVersion());
 		sb.append(' ');
 		sb.append(statusCode.toString());
 		if (reason != null) {

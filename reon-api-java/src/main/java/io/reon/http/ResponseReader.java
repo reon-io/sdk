@@ -26,6 +26,6 @@ public class ResponseReader extends MessageReader {
 			reason = lines[0].substring(lines[0].indexOf(segments[2]));
 		}
 		Headers headers = Headers.parse(lines[1]);
-		return new Response(protocolVersion, sc, reason);
+		return new Response(protocolVersion, sc, reason, headers);
 	}
 }
