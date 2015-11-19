@@ -2,6 +2,7 @@ package io.reon;
 
 import java.util.List;
 
+import io.reon.auth.TokenAuth;
 import io.reon.http.HttpService;
 
 public interface WebContext {
@@ -16,5 +17,5 @@ public interface WebContext {
 
 	String getPackage();
 
-	String getAuthToken();
+	TokenAuth getTokenAuth();
 }

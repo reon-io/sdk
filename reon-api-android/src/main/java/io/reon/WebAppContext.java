@@ -4,8 +4,8 @@ import android.content.ComponentName;
 import android.content.Context;
 
 public interface WebAppContext extends WebContext {
-	public static final String EXTRA_AUTH = "io.reon.server.auth";
-	public static final String EXTRA_APP = "io.reon.server.app";
+	String EXTRA_TOKEN = "io.reon.server.token";
+	String EXTRA_REALM = "io.reon.server.realm";
 	Context getContext();
 	Object bindService(ComponentName name);
 }

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -15,6 +14,7 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import io.reon.auth.TokenAuth;
 import io.reon.http.Method;
 
 public class Service extends LocalService<WebAppContext> implements WebAppContext {
@@ -59,7 +59,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 
 	private LocalServer localServer;
 
-	private volatile String authToken;
+	private volatile TokenAuth authToken;
 
 	@Override
 	public Context getContext() {
@@ -67,15 +67,11 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	}
 
 	private void newAuthToken() {
-		SecureRandom sr = new SecureRandom();
-		StringBuilder sb = new StringBuilder();
-		sb.append(Long.toHexString(sr.nextLong()));
-		sb.append(Long.toHexString(sr.nextLong()));
-		authToken = sb.toString();
+		authToken = new TokenAuth(getPackage());
 		Intent i = new Intent();
 		i.setComponent(new ComponentName(SERVER_APP, REON_SERVICE));
-		i.putExtra(WebAppContext.EXTRA_AUTH, authToken);
-		i.putExtra(WebAppContext.EXTRA_APP, getPackage());
+		i.putExtra(WebAppContext.EXTRA_TOKEN, authToken.getToken());
+		i.putExtra(WebAppContext.EXTRA_REALM, authToken.getRealm());
 		startService(i);
 	}
 
@@ -149,7 +145,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	}
 
 	@Override
-	public String getAuthToken() {
+	public TokenAuth getTokenAuth() {
 		return authToken;
 	}
 
@@ -158,7 +154,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 		for (Endpoint.Info info: endpointList) {
 			try {
 				Endpoint ep = (Endpoint) info.getImplementingClass().getConstructor(WebAppContext.class).newInstance(this);
-				System.out.println(ep.httpMethod().toString()+" "+ep.originalPath()+" instantiated!");
+//				System.out.println(ep.httpMethod().toString()+" "+ep.originalPath()+" instantiated!");
 				list.add(ep);
 			} catch (Exception e) {
 				e.printStackTrace();
