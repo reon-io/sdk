@@ -5,11 +5,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public abstract class AbstractServerTask implements Runnable {
-	private final Connection conn;
+	private final io.reon.net.Connection conn;
 	private RequestReader reader;
 	private MessageWriter writer;
 
-	public AbstractServerTask(Connection conn) {
+	public AbstractServerTask(io.reon.net.Connection conn) {
 		this.conn = conn;
 	}
 
@@ -38,12 +38,19 @@ public abstract class AbstractServerTask implements Runnable {
 						response = authorize(request);
 						if (response == null) {
 							HttpService serv = matchServicePath(request.getURI().getPath());
-							if (serv != null) response = serv.service(request);
+							if (serv != null) {
+								if (request.isContinueExpected()) {
+									writer.write(ResponseBuilder
+									.startWith(StatusCode.CONTINUE)
+									.build());
+								}
+								response = serv.service(request);
+							}
 							else response = ResponseBuilder.notFound().build();
 						}
 						response.setId(requestId);
 						writer.write(response);
-						keepAlive = request.isKeptAlive();
+						keepAlive = !request.shouldClose();
 						// make sure request body has been read
 						if (keepAlive) request.readBody();
 					} else keepAlive = false;

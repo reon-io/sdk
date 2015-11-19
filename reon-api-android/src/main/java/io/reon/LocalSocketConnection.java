@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import io.reon.http.Connection;
+import io.reon.net.Connection;
 
 public class LocalSocketConnection implements Connection {
 	private final LocalSocket localSocket;

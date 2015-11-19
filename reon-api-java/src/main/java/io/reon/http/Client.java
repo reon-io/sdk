@@ -5,11 +5,11 @@ import java.io.IOException;
 
 public class Client implements Closeable {
 	public static final String DEFAULT_SERVER_ADDR = "io.reon.server.app";
-	private final Connection conn;
+	private final io.reon.net.Connection conn;
 	private final MessageWriter writer;
 	private final ResponseReader reader;
 
-	public Client(Connection conn) throws IOException {
+	public Client(io.reon.net.Connection conn) throws IOException {
 		this.conn = conn;
 		writer = new MessageWriter(conn.getOutputStream());
 		reader = new ResponseReader(conn.getInputStream());

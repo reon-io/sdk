@@ -1,4 +1,4 @@
-package io.reon.http;
+package io.reon.net;
 
 import java.io.Closeable;
 import java.io.IOException;

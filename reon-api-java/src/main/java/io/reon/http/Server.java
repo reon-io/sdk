@@ -13,7 +13,7 @@ public class Server {
 		this.exec = exec;
 	}
 
-	public void accept(Connection conn) throws IOException {
+	public void accept(io.reon.net.Connection conn) throws IOException {
 		exec.submit(new ServerTask(conn));
 	}
 
@@ -30,7 +30,7 @@ public class Server {
 
 	private class ServerTask extends AbstractServerTask {
 
-		public ServerTask(Connection conn) {
+		public ServerTask(io.reon.net.Connection conn) {
 			super(conn);
 		}
 

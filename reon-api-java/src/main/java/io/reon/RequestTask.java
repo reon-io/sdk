@@ -6,7 +6,7 @@ public class RequestTask extends AbstractServerTask {
 
 	private final WebContext context;
 
-	public RequestTask(Connection conn, WebContext context) {
+	public RequestTask(io.reon.net.Connection conn, WebContext context) {
 		super(conn);
 		this.context = context;
 	}
@@ -22,10 +22,10 @@ public class RequestTask extends AbstractServerTask {
 		if (authToken == null) {
 			if(context.getPackage() != "test") // allow testing without auth
 				return ResponseBuilder.unauthorized()
-						.withHeader(Headers.RESPONSE.WWW_AUTH, "Ticket realm=\""+context.getPackage()+"\"")
-						.withKeepAlive().build();
+						.withHeader(Headers.RESPONSE.WWW_AUTH, "Token realm=\""+context.getPackage()+"\"")
+						.build();
 		} else {
-			if(!context.getAuthToken().equals(authToken))
+			if(!context.getTokenAuth().verify(authToken))
 				return ResponseBuilder.forbidden().withClose().build();
 		}
 		return null;
