@@ -25,7 +25,7 @@ public class HeaderTest extends ReonTestCase {
 			"Cookie: a=1; b=2\r\n" +
 			"Connection: Keep-Alive\r\n\r\n";
 
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void headersShouldBeDecoded() throws IOException {
 		// given
 		Service service = new Service();

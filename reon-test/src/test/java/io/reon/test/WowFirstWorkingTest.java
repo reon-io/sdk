@@ -45,7 +45,7 @@ public class WowFirstWorkingTest extends ReonTestCase {
 			"Host: localhost\r\n" +
 			"Connection: Keep-Alive\r\n\r\n";
 
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void simplestGet() throws IOException, InterruptedException {
 		// given
 		Service service = startService();
@@ -65,7 +65,7 @@ public class WowFirstWorkingTest extends ReonTestCase {
 		assertThat(response, containsString(expectedBody));
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void simplestPost() throws IOException, InterruptedException {
 		// given
 		Service service = startService();
@@ -92,7 +92,7 @@ public class WowFirstWorkingTest extends ReonTestCase {
 		return service;
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void shouldParseLongGetRequests() throws IOException {
 		// given
 		Service service = startService();

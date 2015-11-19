@@ -30,7 +30,7 @@ public class CookieTest extends ReonTestCase {
 			"Cookie: COOKIE_NAME=cookieValue\r\n" +
 			"Connection: Keep-Alive\r\n\r\n";
 
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void cookieShouldBeReturned() throws IOException, InterruptedException {
 		// given
 		Service service = new Service();
@@ -52,7 +52,7 @@ public class CookieTest extends ReonTestCase {
 		assertThat(response, containsString(expectedBody));
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout = 10000)
 	public void cookieShouldBeAccepted() throws IOException, InterruptedException {
 		// given
 		Service service = new Service();
