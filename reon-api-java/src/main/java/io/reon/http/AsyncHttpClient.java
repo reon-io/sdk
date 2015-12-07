@@ -8,14 +8,14 @@ import java.util.concurrent.ExecutorService;
 import io.reon.concurrent.ListenableExecutorService;
 import io.reon.concurrent.ListenableFuture;
 
-public class AsyncClient implements Closeable {
+public class AsyncHttpClient implements Closeable {
 
 	private final io.reon.net.Connection conn;
 	private final ListenableExecutorService executorService;
 	private final MessageWriter writer;
 	private final ResponseReader reader;
 
-	public AsyncClient(io.reon.net.Connection conn, ExecutorService executorService) throws IOException {
+	public AsyncHttpClient(io.reon.net.Connection conn, ExecutorService executorService) throws IOException {
 		this.conn = conn;
 		this.executorService = new ListenableExecutorService(executorService);
 		writer = new MessageWriter(conn.getOutputStream());

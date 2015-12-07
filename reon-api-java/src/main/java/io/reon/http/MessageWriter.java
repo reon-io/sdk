@@ -24,7 +24,7 @@ public class MessageWriter {
 			InputStream is = message.getBodyAsInputStream();
 			if (is != null) copy(is, os, message.isChunked());
 			os.flush();
-			if (!message.isKeptAlive()) os.close();
+			if (message.shouldClose()) os.close();
 			message.onClose();
 		}
 	}

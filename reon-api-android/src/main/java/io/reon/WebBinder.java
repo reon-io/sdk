@@ -12,7 +12,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.HashSet;
 
-import io.reon.http.Client;
+import io.reon.http.HttpClient;
 import io.reon.http.MimeTypes;
 import io.reon.http.RequestBuilder;
 import io.reon.http.Response;
@@ -21,7 +21,7 @@ public class WebBinder implements IBinder {
 
 	private final IBinder delegate;
 	private final String uri;
-	private final Client client;
+	private final HttpClient client;
 	private final HashSet<DeathRecipient> deathRecipients;
 	private boolean alive;
 
@@ -29,9 +29,9 @@ public class WebBinder implements IBinder {
 		this.delegate = delegate;
 		this.uri = uri;
 		LocalSocket ls = new LocalSocket();
-		ls.connect(new LocalSocketAddress(Client.DEFAULT_SERVER_ADDR));
-		client = new Client(new LocalSocketConnection(ls));
-		deathRecipients = new HashSet<DeathRecipient>(4);
+		ls.connect(new LocalSocketAddress(HttpClient.DEFAULT_SERVER_ADDR));
+		client = new HttpClient(new LocalSocketConnection(ls));
+		deathRecipients = new HashSet<>(4);
 		alive = true;
 	}
 
