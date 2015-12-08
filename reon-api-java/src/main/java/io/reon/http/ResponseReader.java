@@ -25,7 +25,12 @@ public class ResponseReader extends MessageReader {
 		if(segments.length>=3) {
 			reason = lines[0].substring(lines[0].indexOf(segments[2]));
 		}
-		Headers headers = Headers.parse(lines[1]);
+		Headers headers;
+		if (lines.length > 1) {
+			headers = Headers.parse(lines[1]);
+		} else {
+			headers = new Headers();
+		}
 		return new Response(protocolVersion, sc, reason, headers);
 	}
 }
