@@ -31,6 +31,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	static {
 		addEndpointInfo(new Endpoint.Info(Method.GET, AppServicesEndpoint.SERVICES_JSON, AppServicesEndpoint.class));
 		addEndpointInfo(new Endpoint.Info(Method.GET, "/", AssetEndpoint.class));
+		addEndpointInfo(new Endpoint.Info(Method.GET, "/icon.png", IconEndpoint.class));
 		try {
 			// run static initializers for generated classes
 			Class.forName(SERVICES_CLASS_NAME);
