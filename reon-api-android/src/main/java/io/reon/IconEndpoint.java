@@ -31,7 +31,9 @@ public class IconEndpoint extends AppEndpoint {
 	public Bitmap drawToBitmap(Drawable drawable) {
 		Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(),
 				drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-		drawable.draw(new Canvas(bitmap));
+		Canvas canvas = new Canvas(bitmap);
+		drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+		drawable.draw(canvas);
 		return bitmap;
 	}
 
