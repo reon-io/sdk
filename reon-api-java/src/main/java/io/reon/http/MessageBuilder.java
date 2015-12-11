@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 public class MessageBuilder<T extends Message> {
@@ -61,11 +62,6 @@ public class MessageBuilder<T extends Message> {
 		return this;
 	}
 
-	public MessageBuilder<T> withBody(InputStream is) {
-		that.setBody(is);
-		return this;
-	}
-
 	public MessageBuilder<T> withBody(byte[] data) {
 		that.setBody(data);
 		return this;
@@ -93,4 +89,20 @@ public class MessageBuilder<T extends Message> {
 		return withUpdatedHeader(Headers.RESPONSE.TRANSFER_ENC, value);
 	}
 
+	public MessageBuilder withBody(InputStream is) {
+		// always read body
+		if (that.isChunked()) is = new ChunkedInputStream(is);
+		that.body = is;
+		long length = that.getContentLenght();
+		try {
+			if (length > 0 && length <= that.IN_MEMORY_LIMIT) {
+				byte[] cache = new byte[(int) that.getContentLenght()];
+				that.readBody(cache);
+				that.body = cache;
+			}
+		} catch (IOException ex) {
+			throw new HttpBadRequestException(ex.getMessage());
+		}
+		return this;
+	}
 }

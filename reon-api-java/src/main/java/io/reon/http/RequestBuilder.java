@@ -126,28 +126,15 @@ public class RequestBuilder extends MessageBuilder<Request> {
 		return (RequestBuilder) super.withBody(f);
 	}
 
+	@Override
+	public RequestBuilder withBody(InputStream is) {
+		return (RequestBuilder) super.withBody(is);
+	}
+
 	public RequestBuilder withRedirection(URI u) {
 		if (u != null) {
 			that.getHeaders().update(Headers.REQUEST.ORIGIN, that.getURI().toString());
 			that.uri = u;
-		}
-		return this;
-	}
-
-	@Override
-	public RequestBuilder withBody(InputStream is) {
-		// always read body
-		if (that.isChunked()) is = new ChunkedInputStream(is);
-		that.body = is;
-		long length = that.getContentLenght();
-		try {
-			if (length > 0 && length <= that.IN_MEMORY_LIMIT) {
-				byte[] cache = new byte[(int) that.getContentLenght()];
-				that.readBody(cache);
-				that.body = cache;
-			}
-		} catch (IOException ex) {
-			throw new HttpBadRequestException(ex.getMessage());
 		}
 		return this;
 	}

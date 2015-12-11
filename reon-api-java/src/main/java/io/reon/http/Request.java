@@ -102,36 +102,6 @@ public class Request extends Message {
 		return new Request(method, uri, protocolVersion, headers);
 	}
 
-	public long readBody() throws IOException {
-		return readBody(null);
-	}
-
-	public long readBody(final byte[] target) throws IOException {
-		long len = getContentLenght();
-		if (target != null && target.length < len) len = target.length;
-		return readBody(target, len);
-	}
-
-	public long readBody(final byte[] target, long maxLength) throws IOException {
-		if (maxLength <= 0 || body == null) return -1;
-		long totalRead = 0;
-		InputStream is = getBodyAsInputStream();
-		while (totalRead < maxLength) {
-			long bytesToRead = maxLength - totalRead;
-			int len = BUFFER_LENGTH;
-			if (len > bytesToRead) len = (int) bytesToRead;
-			if (target != null) {
-				int bytesRead = is.read(target, (int) totalRead, len);
-				if (bytesRead < 0) break;
-				totalRead += bytesRead;
-			} else {
-				long bytesSkipped = is.skip(maxLength);
-				totalRead += bytesSkipped;
-			}
-		}
-		return totalRead;
-	}
-
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
