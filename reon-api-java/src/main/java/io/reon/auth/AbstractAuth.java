@@ -2,7 +2,7 @@ package io.reon.auth;
 
 import java.util.HashMap;
 
-import javax.xml.bind.DatatypeConverter;
+import io.reon.util.Hex;
 
 public abstract class AbstractAuth implements HttpAuth {
 	public static final String REALM = "realm";
@@ -24,10 +24,10 @@ public abstract class AbstractAuth implements HttpAuth {
 	}
 
 	public static byte[] fromHex(String value) {
-		return DatatypeConverter.parseHexBinary(value);
+		return Hex.decodeHex(value);
 	}
 
 	public static String toHex(byte[] value) {
-		return DatatypeConverter.printHexBinary(value);
+		return Hex.encodeHex(value, false);
 	}
 }
