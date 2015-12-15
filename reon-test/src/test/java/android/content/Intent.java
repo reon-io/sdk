@@ -7,4 +7,7 @@ public class Intent {
 	public Intent putExtra(String name, String value) {
 		return null;
 	}
+	public String getStringExtra(String name) {
+		return null;
+	}
 }
