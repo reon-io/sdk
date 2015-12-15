@@ -2,11 +2,13 @@ package io.reon;
 
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
+import android.os.Binder;
 import android.os.DeadObjectException;
 import android.os.IBinder;
 import android.os.IInterface;
 import android.os.Parcel;
 import android.os.RemoteException;
+import android.util.Log;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
@@ -17,7 +19,9 @@ import io.reon.http.MimeTypes;
 import io.reon.http.RequestBuilder;
 import io.reon.http.Response;
 
-public class WebBinder implements IBinder {
+public class WebBinder extends Binder {
+
+	private static final String LOG_TAG = WebBinder.class.getSimpleName();
 
 	private final IBinder delegate;
 	private final String uri;
@@ -36,8 +40,12 @@ public class WebBinder implements IBinder {
 	}
 
 	@Override
-	public String getInterfaceDescriptor() throws RemoteException {
-		return delegate.getInterfaceDescriptor();
+	public String getInterfaceDescriptor() {
+		try {
+			return delegate.getInterfaceDescriptor();
+		} catch (RemoteException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private synchronized void died() {
@@ -83,17 +91,25 @@ public class WebBinder implements IBinder {
 	}
 
 	@Override
-	public void dump(FileDescriptor fileDescriptor, String[] strings) throws RemoteException {
-		delegate.dump(fileDescriptor, strings);
+	public void dump(FileDescriptor fileDescriptor, String[] strings) {
+		try {
+			delegate.dump(fileDescriptor, strings);
+		} catch (RemoteException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public void dumpAsync(FileDescriptor fileDescriptor, String[] strings) throws RemoteException {
-		delegate.dumpAsync(fileDescriptor, strings);
+	public void dumpAsync(FileDescriptor fileDescriptor, String[] strings) {
+		try {
+			delegate.dumpAsync(fileDescriptor, strings);
+		} catch (RemoteException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
-	public boolean transact(int opcode, Parcel req, Parcel resp, int flags) throws RemoteException {
+	protected boolean onTransact(int opcode, Parcel req, Parcel resp, int flags) throws RemoteException {
 		if(!alive) throw new DeadObjectException();
 		try {
 			Response response = client.send(RequestBuilder
@@ -105,10 +121,12 @@ public class WebBinder implements IBinder {
 				byte[] body = response.getBody();
 				if (body!=null) resp.unmarshall(body,0,body.length);
 			} else {
+				Log.e(LOG_TAG, "Response: " + response.getStatusCode().toString());
 				died();
 				throw new RemoteException(response.getStatusCode().toString());
 			}
 		} catch (IOException e) {
+			Log.e(LOG_TAG, "Transact error", e);
 			died();
 			throw new RemoteException(e.getMessage());
 		}
@@ -116,7 +134,7 @@ public class WebBinder implements IBinder {
 	}
 
 	@Override
-	public synchronized void linkToDeath(DeathRecipient deathRecipient, int i) throws RemoteException {
+	public synchronized void linkToDeath(DeathRecipient deathRecipient, int i) {
 		deathRecipients.add(deathRecipient);
 	}
 
