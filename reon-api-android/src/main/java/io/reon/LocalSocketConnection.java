@@ -13,6 +13,8 @@ public class LocalSocketConnection implements Connection {
 	private final LocalSocket localSocket;
 	private InputStream is;
 
+	private volatile boolean closed;
+
 	public LocalSocketConnection(LocalSocket localSocket) {
 		this.localSocket = localSocket;
 	}
@@ -30,11 +32,12 @@ public class LocalSocketConnection implements Connection {
 
 	@Override
 	public boolean isClosed() {
-		return localSocket.isClosed();
+		return closed;
 	}
 
 	@Override
 	public void close() throws IOException {
+		closed = true;
 		localSocket.close();
 	}
 }
