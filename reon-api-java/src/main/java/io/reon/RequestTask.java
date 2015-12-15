@@ -25,7 +25,7 @@ public class RequestTask extends AbstractServerTask {
 						.withHeader(Headers.RESPONSE.WWW_AUTH, "Token realm=\""+context.getPackage()+"\"")
 						.build();
 		} else {
-			if(!context.getTokenAuth().verify(authToken))
+			if(!context.getClientTokenAuth().verify(authToken))
 				return ResponseBuilder.forbidden().withClose().build();
 		}
 		return null;

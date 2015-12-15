@@ -6,17 +6,24 @@ import android.util.Log;
 
 import java.io.IOException;
 
+import io.reon.auth.TokenAuth;
+
 public abstract class WebService extends android.app.Service {
 
 	private static final String LOG_TAG = WebService.class.getSimpleName();
 
-	public final static String EXTRA_TARGET = "uri";
+	public final static String EXTRA_TARGET = "io.reon.uri";
+
+	public final static String EXTRA_TOKEN = "io.reon.token";
 
 	@Override
 	public final IBinder onBind(Intent intent) {
-		if (intent.hasExtra(EXTRA_TARGET)) {
+		if (intent.hasExtra(EXTRA_TARGET) && intent.hasExtra(EXTRA_TOKEN)) {
 			try {
-				return new WebBinder(getBinder(), intent.getStringExtra(EXTRA_TARGET));
+				String realm = getPackageName();
+				return new WebBinder(getBinder(),
+						intent.getStringExtra(EXTRA_TARGET),
+						new TokenAuth(intent.getStringExtra(EXTRA_TOKEN), realm));
 			} catch (IOException e) {
 				Log.e(LOG_TAG, "Error obtaining web binder", e);
 				return null;

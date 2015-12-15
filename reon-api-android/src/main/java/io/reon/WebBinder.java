@@ -14,6 +14,7 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.util.HashSet;
 
+import io.reon.auth.TokenAuth;
 import io.reon.http.HttpClient;
 import io.reon.http.MimeTypes;
 import io.reon.http.RequestBuilder;
@@ -25,13 +26,15 @@ public class WebBinder extends Binder {
 
 	private final IBinder delegate;
 	private final String uri;
+	private final TokenAuth token;
 	private final HttpClient client;
 	private final HashSet<DeathRecipient> deathRecipients;
 	private boolean alive;
 
-	public WebBinder(IBinder delegate, String uri) throws IOException {
+	public WebBinder(IBinder delegate, String uri, TokenAuth token) throws IOException {
 		this.delegate = delegate;
 		this.uri = uri;
+		this.token = token;
 		LocalSocket ls = new LocalSocket();
 		ls.connect(new LocalSocketAddress(HttpClient.DEFAULT_SERVER_ADDR));
 		client = new HttpClient(new LocalSocketConnection(ls));
@@ -114,6 +117,7 @@ public class WebBinder extends Binder {
 		try {
 			Response response = client.send(RequestBuilder
 					.post(uri + "/transact/" + opcode + "/" + flags)
+					.withAuth(token.response(TokenAuth.TOKEN_AUTH))
 					.withContentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM)
 					.withBody(req.marshall())
 					.build());

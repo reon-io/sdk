@@ -17,5 +17,7 @@ public interface WebContext {
 
 	String getPackage();
 
-	TokenAuth getTokenAuth();
+	TokenAuth getClientTokenAuth();
+
+	TokenAuth getServerTokenAuth();
 }

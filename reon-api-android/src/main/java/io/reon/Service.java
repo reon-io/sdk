@@ -60,26 +60,32 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 
 	private LocalServer localServer;
 
-	private volatile TokenAuth authToken;
+	private volatile TokenAuth clientAuthToken;
+
+	private volatile TokenAuth serverAuthToken;
 
 	@Override
 	public Context getContext() {
 		return this;
 	}
 
-	private void newAuthToken() {
-		authToken = new TokenAuth(getPackage());
+	private void newClientTokenAuth() {
+		clientAuthToken = new TokenAuth(getPackage());
 		Intent i = new Intent();
 		i.setComponent(new ComponentName(SERVER_APP, REON_SERVICE));
-		i.putExtra(WebAppContext.EXTRA_TOKEN, authToken.getToken());
-		i.putExtra(WebAppContext.EXTRA_REALM, authToken.getRealm());
+		i.putExtra(WebAppContext.EXTRA_TOKEN, clientAuthToken.getToken());
+		i.putExtra(WebAppContext.EXTRA_REALM, clientAuthToken.getRealm());
 		startService(i);
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		Log.d(TAG, "Received intent from server");
-		if (authToken == null) newAuthToken();
+		String token = intent.getStringExtra(WebAppContext.EXTRA_TOKEN);
+		String realm = intent.getStringExtra(WebAppContext.EXTRA_REALM);
+		if (token != null && getPackageName().equals(realm)) {
+			serverAuthToken = new TokenAuth(token, realm);
+		}
 		if (executorService == null) {
 			executorService = new ThreadPoolExecutor(1, 8, 30, TimeUnit.SECONDS,
 					new SynchronousQueue<Runnable>(), ThreadFactories.newWorkerThreadFactory());
@@ -98,6 +104,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 		if (requestProcessor == null) {
 			requestProcessor = new RequestProcessor(createEndpoints(), getFilters());
 		}
+		newClientTokenAuth();
 	}
 
 	@Override
@@ -112,7 +119,7 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 			executorService.shutdown();
 			executorService = null;
 		}
-		authToken = null;
+		clientAuthToken = null;
 	}
 
 	public Object bindService(ComponentName name) {
@@ -146,8 +153,13 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	}
 
 	@Override
-	public TokenAuth getTokenAuth() {
-		return authToken;
+	public TokenAuth getClientTokenAuth() {
+		return clientAuthToken;
+	}
+
+	@Override
+	public TokenAuth getServerTokenAuth() {
+		return serverAuthToken;
 	}
 
 	private List<? extends Endpoint> createEndpoints() {
