@@ -25,15 +25,17 @@ public class WebBinder extends Binder {
 	private static final String LOG_TAG = WebBinder.class.getSimpleName();
 
 	private final IBinder delegate;
-	private final String uri;
+	private final String host;
+	private final String prefix;
 	private final TokenAuth token;
 	private final HttpClient client;
 	private final HashSet<DeathRecipient> deathRecipients;
 	private boolean alive;
 
-	public WebBinder(IBinder delegate, String uri, TokenAuth token) throws IOException {
+	public WebBinder(IBinder delegate, String host, String prefix, TokenAuth token) throws IOException {
 		this.delegate = delegate;
-		this.uri = uri;
+		this.host = host;
+		this.prefix = prefix;
 		this.token = token;
 		LocalSocket ls = new LocalSocket();
 		ls.connect(new LocalSocketAddress(HttpClient.DEFAULT_SERVER_ADDR));
@@ -73,7 +75,8 @@ public class WebBinder extends Binder {
 	public boolean pingBinder() {
 		try {
 			Response response = client.send(RequestBuilder
-					.post(uri + "/ping")
+					.post(prefix + "/ping")
+					.withHost(host)
 					.build());
 			if(response.isOK()) return true;
 			else died();
@@ -116,8 +119,8 @@ public class WebBinder extends Binder {
 		if(!alive) throw new DeadObjectException();
 		try {
 			Response response = client.send(RequestBuilder
-					.post("/transact/" + opcode + "/" + flags)
-					.withHost(uri)
+					.post(prefix + "/transact/" + opcode + "/" + flags)
+					.withHost(host)
 					.withAuth(token.response(TokenAuth.TOKEN_AUTH))
 					.withContentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM)
 					.withBody(req.marshall())

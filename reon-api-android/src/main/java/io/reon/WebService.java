@@ -21,8 +21,9 @@ public abstract class WebService extends android.app.Service {
 		if (intent.hasExtra(EXTRA_TARGET) && intent.hasExtra(EXTRA_TOKEN)) {
 			try {
 				String realm = getPackageName();
-				return new WebBinder(getBinder(),
-						intent.getStringExtra(EXTRA_TARGET),
+				String target = intent.getStringExtra(EXTRA_TARGET);
+				return new WebBinder(getBinder(), target,
+						"/" + realm + "/" + getClass().getSimpleName(),
 						new TokenAuth(intent.getStringExtra(EXTRA_TOKEN), realm));
 			} catch (IOException e) {
 				Log.e(LOG_TAG, "Error obtaining web binder", e);
