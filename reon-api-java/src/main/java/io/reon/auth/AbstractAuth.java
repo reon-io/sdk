@@ -14,11 +14,15 @@ public abstract class AbstractAuth implements HttpAuth {
 	public static final String EOT = "\"";
 
 	public static HashMap<String, String> parse(String text) {
-		String[] fields = text.substring(text.indexOf(' ')+1).split(",");
 		HashMap<String, String> attrs = new HashMap<>();
-		for(String field: fields) {
-			String[] kv = field.split("=");
-			attrs.put(kv[0].trim(), kv[1].replace('"',' ').trim());
+		try {
+			String[] fields = text.substring(text.indexOf(' ') + 1).split(",");
+			for (String field : fields) {
+				String[] kv = field.split("=");
+				attrs.put(kv[0].trim(), kv[1].replace('"', ' ').trim());
+			}
+		} catch (RuntimeException ex) {
+			// ignore
 		}
 		return attrs;
 	}
