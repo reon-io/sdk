@@ -116,7 +116,8 @@ public class WebBinder extends Binder {
 		if(!alive) throw new DeadObjectException();
 		try {
 			Response response = client.send(RequestBuilder
-					.post(uri + "/transact/" + opcode + "/" + flags)
+					.post("/transact/" + opcode + "/" + flags)
+					.withHost(uri)
 					.withAuth(token.response(TokenAuth.TOKEN_AUTH))
 					.withContentType(MimeTypes.MIME_APPLICATION_OCTET_STREAM)
 					.withBody(req.marshall())
