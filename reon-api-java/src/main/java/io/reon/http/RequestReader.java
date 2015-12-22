@@ -26,7 +26,7 @@ public class RequestReader extends MessageReader {
 		if (method == null) throw new HttpBadRequestException("Invalid HTTP method: " + segments[0]);
 		URI uri = URI.create(segments[1]);
 		String protocolVersion = segments[2];
-		Headers headers = Headers.parse(lines[1]);
+		Headers headers = (lines.length > 1) ? Headers.parse(lines[1]) : new Headers();
 		return new Request(method, uri, protocolVersion, headers);
 	}
 
