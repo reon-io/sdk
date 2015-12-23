@@ -20,4 +20,8 @@ public class HttpException extends RuntimeException {
 	public StatusCode getStatusCode() {
 		return statusCode;
 	}
+
+	public boolean shouldClose() {
+		return false;
+	}
 }

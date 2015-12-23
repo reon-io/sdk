@@ -36,7 +36,7 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder methodNotAllowed() {
-		return startWith(StatusCode.METHOD_NOT_ALLOWED).withClose();
+		return startWith(StatusCode.METHOD_NOT_ALLOWED);
 	}
 
 	public static ResponseBuilder unauthorized() {

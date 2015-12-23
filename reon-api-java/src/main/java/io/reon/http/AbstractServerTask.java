@@ -37,14 +37,14 @@ public abstract class AbstractServerTask implements Runnable {
 						requestId = request.getId();
 						response = authorize(request);
 						if (response == null) {
-							HttpService serv = matchServicePath(request.getURI().getPath());
-							if (serv != null) {
+							HttpService service = matchServicePath(request.getURI().getPath());
+							if (service != null) {
 								if (request.isContinueExpected()) {
 									writer.write(ResponseBuilder
 									.startWith(StatusCode.CONTINUE)
 									.build());
 								}
-								response = serv.service(request);
+								response = service.service(request);
 							}
 							else response = ResponseBuilder.notFound().build();
 						}
@@ -60,12 +60,12 @@ public abstract class AbstractServerTask implements Runnable {
 						.error(e)
 						.withBody(pre(getStackTrace(e)))
 						.build());
+				if (e.shouldClose()) conn.close();
 			} catch (IOException e) {
 				writer.write(ResponseBuilder
 						.internalError(e)
 						.withBody(pre(getStackTrace(e)))
 						.build());
-			} finally {
 				conn.close();
 			}
 		} catch (IOException iex) {

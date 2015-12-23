@@ -14,4 +14,9 @@ public class HttpInternalErrorException extends HttpException {
 	public HttpInternalErrorException(String message, Throwable cause) {
 		super(mStatus, message, cause);
 	}
+
+	@Override
+	public boolean shouldClose() {
+		return true;
+	}
 }

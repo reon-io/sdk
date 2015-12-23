@@ -14,4 +14,9 @@ public class HttpServiceUnavailableException extends HttpException {
 	public HttpServiceUnavailableException(String message, Throwable cause) {
 		super(mStatus, message, cause);
 	}
+
+	@Override
+	public boolean shouldClose() {
+		return true;
+	}
 }

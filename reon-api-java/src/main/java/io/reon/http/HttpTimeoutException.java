@@ -14,4 +14,9 @@ public class HttpTimeoutException extends HttpException {
 	public HttpTimeoutException(String message, Throwable cause) {
 		super(mStatus, message, cause);
 	}
+
+	@Override
+	public boolean shouldClose() {
+		return true;
+	}
 }

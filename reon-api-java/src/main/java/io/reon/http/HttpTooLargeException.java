@@ -14,4 +14,9 @@ public class HttpTooLargeException extends HttpException {
 	public HttpTooLargeException(String message, Throwable cause) {
 		super(mStatus, message, cause);
 	}
+
+	@Override
+	public boolean shouldClose() {
+		return true;
+	}
 }
