@@ -22,7 +22,7 @@ public class MessageBuilder<T extends Message> {
 	}
 
 	public MessageBuilder<T> withHeaders(String headers) {
-		that.getHeaders().add(Headers.parse(headers));
+		that.getHeaders().addAll(Headers.parse(headers));
 		return this;
 	}
 

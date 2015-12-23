@@ -5,13 +5,11 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Headers {
+public class Headers extends ArrayList<Headers.Header> {
 	private static final int HEADERS_INITIAL_CAPACITY = 20;
 
-	private final List<Header> headerList;
-
 	public Headers() {
-		headerList = new ArrayList<Header>(HEADERS_INITIAL_CAPACITY);
+		super(HEADERS_INITIAL_CAPACITY);
 	}
 
 	public static final class REQUEST {
@@ -142,14 +140,6 @@ public class Headers {
 		}
 	}
 
-	public void add(Header h) {
-		if (h != null) headerList.add(h);
-	}
-
-	public void add(Headers hdrs) {
-		for(Header h: hdrs.headerList) add(h);
-	}
-
 	public void add(String name, String value) {
 		add(new Header(name, value));
 	}
@@ -167,18 +157,14 @@ public class Headers {
 		add(RESPONSE.SET_COOKIE, cookie.toString());
 	}
 
-	public void remove(Header h) {
-		headerList.remove(h);
-	}
-
 	public void remove(String name) {
-		for (Header h : headerList) {
-			if (h.getName().equals(name)) headerList.remove(h);
+		for (Header h : this) {
+			if (h.getName().equalsIgnoreCase(name)) remove(h);
 		}
 	}
 
 	public Header findFirst(String name) {
-		for (Header h : headerList) {
+		for (Header h : this) {
 			if (h.getName().equalsIgnoreCase(name)) return h;
 		}
 		return null;
@@ -192,7 +178,7 @@ public class Headers {
 
 	public List<Header> findAll(String name) {
 		List<Header> vals = new LinkedList<Header>();
-		for (Header h : headerList) {
+		for (Header h : this) {
 			if (h.getName().equals(name)) vals.add(h);
 		}
 		if (vals.isEmpty()) {
@@ -203,7 +189,7 @@ public class Headers {
 
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		for (Header h : headerList)
+		for (Header h : this)
 			sb.append(h.toString());
 		return sb.toString();
 	}
