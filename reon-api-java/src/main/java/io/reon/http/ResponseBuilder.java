@@ -28,7 +28,7 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder notFound() {
-		return startWith(StatusCode.NOT_FOUND).withClose();
+		return startWith(StatusCode.NOT_FOUND);
 	}
 
 	public static ResponseBuilder error(HttpException ex) {
