@@ -22,8 +22,8 @@ public class Service extends LocalService<WebAppContext> implements WebAppContex
 	static final String SERVICES_CLASS_NAME = "io.reon.MyServices";
 
 	public static final String TAG = Service.class.getName();
-	public static final String SERVER_APP = "io.reon.server.app";
-	public static final String REON_SERVICE = "ReonService";
+	public static final String SERVER_APP = "io.reon.app";
+	public static final String REON_SERVICE = "io.reon.service.ReonService";
 
 	private static List<Endpoint.Info> endpointList = new ArrayList<Endpoint.Info>();
 	private static List<Filter> filterList = new ArrayList<Filter>();
