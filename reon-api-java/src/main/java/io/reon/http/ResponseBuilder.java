@@ -28,7 +28,7 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder notFound() {
-		return startWith(StatusCode.NOT_FOUND).withClose();
+		return startWith(StatusCode.NOT_FOUND);
 	}
 
 	public static ResponseBuilder error(HttpException ex) {
@@ -40,7 +40,7 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder unauthorized() {
-		return startWith(StatusCode.UNAUTHORIZED).withClose();
+		return startWith(StatusCode.UNAUTHORIZED);
 	}
 
 	public static ResponseBuilder serviceUnavailable() {

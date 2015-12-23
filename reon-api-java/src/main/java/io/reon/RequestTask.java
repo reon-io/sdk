@@ -26,7 +26,7 @@ public class RequestTask extends AbstractServerTask {
 						.build();
 		} else {
 			if(!context.getClientTokenAuth().verify(authToken))
-				return ResponseBuilder.forbidden().withClose().build();
+				return ResponseBuilder.forbidden().build();
 		}
 		return null;
 	}
