@@ -50,7 +50,7 @@ public abstract class AbstractServerTask implements Runnable {
 						}
 						response.setId(requestId);
 						writer.write(response);
-						keepAlive = !request.shouldClose();
+						keepAlive = !request.shouldClose() && !response.shouldClose();
 						// make sure request body has been read
 						if (keepAlive) request.readBody();
 					} else keepAlive = false;
