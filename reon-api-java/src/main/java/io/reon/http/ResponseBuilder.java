@@ -40,7 +40,7 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder unauthorized() {
-		return startWith(StatusCode.UNAUTHORIZED).withClose();
+		return startWith(StatusCode.UNAUTHORIZED);
 	}
 
 	public static ResponseBuilder serviceUnavailable() {
