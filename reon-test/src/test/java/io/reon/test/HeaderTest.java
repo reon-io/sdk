@@ -4,13 +4,15 @@ import android.content.Intent;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
+import io.reon.LocalSocketConnection;
+import io.reon.http.HttpClient;
+import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
+import io.reon.http.Response;
 import io.reon.test.support.ReonTestCase;
 import io.reon.Service;
 
@@ -19,11 +21,11 @@ import static org.junit.Assert.assertThat;
 
 public class HeaderTest extends ReonTestCase {
 
-	public static final String GET_1 =
-			"GET /headertest HTTP/1.1\r\n" +
-			"Host: localhost\r\n" +
-			"Cookie: a=1; b=2\r\n" +
-			"Connection: Keep-Alive\r\n\r\n";
+	public static final Request GET_1 = RequestBuilder
+			.get("/headertest")
+			.withHost("localhost")
+			.withHeader("Cookie", "a=1; b=2")
+			.build();
 
 	@Test(timeout = 10000)
 	public void headersShouldBeDecoded() throws IOException {
@@ -34,17 +36,15 @@ public class HeaderTest extends ReonTestCase {
 
 		// when
 		LocalSocket clientSocket = new LocalSocket();
-		clientSocket.connect(new LocalSocketAddress("doesn't matter now"));
-		OutputStream os = clientSocket.getOutputStream();
-		os.write(GET_1.getBytes());
-		os.close();
+		clientSocket.connect(new LocalSocketAddress("test"));
+		HttpClient client = new HttpClient(new LocalSocketConnection(clientSocket));
+		Response response = client.send(GET_1);
 
 		// then
-		InputStream is = clientSocket.getInputStream();
-		String response = IOUtils.toString(is);
 		System.out.println("response: " + response);
-		assertThat(response, containsString("localhost"));
-		assertThat(response, containsString("b=2"));
-		assertThat(response, containsString("a=1"));
+		String headers = response.getBodyAsString();
+		assertThat(headers, containsString("localhost"));
+		assertThat(headers, containsString("b=2"));
+		assertThat(headers, containsString("a=1"));
 	}
 }

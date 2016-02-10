@@ -4,13 +4,15 @@ import android.content.Intent;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
+import io.reon.LocalSocketConnection;
+import io.reon.http.HttpClient;
+import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
+import io.reon.http.Response;
 import io.reon.test.support.ReonTestCase;
 import io.reon.Service;
 
@@ -19,16 +21,16 @@ import static org.junit.Assert.assertThat;
 
 public class CookieTest extends ReonTestCase {
 
-	public static final String GET_1 =
-			"GET /setCookie?name=COOKIE_NAME&value=cookieValue HTTP/1.1\r\n" +
-			"Host: localhost\r\n" +
-			"Connection: Keep-Alive\r\n\r\n";
+	public static final Request GET_1 = RequestBuilder
+			.get("/setCookie?name=COOKIE_NAME&value=cookieValue")
+			.withHost("localhost")
+			.build();
 
-	public static final String GET_2 =
-			"GET /acceptCookie?cookieName=COOKIE_NAME HTTP/1.1\r\n" +
-			"Host: localhost\r\n" +
-			"Cookie: COOKIE_NAME=cookieValue\r\n" +
-			"Connection: Keep-Alive\r\n\r\n";
+	public static final Request GET_2 = RequestBuilder
+			.get("/acceptCookie?cookieName=COOKIE_NAME")
+			.withHost("localhost")
+			.withHeader("Cookie", "COOKIE_NAME=cookieValue")
+			.build();
 
 	@Test(timeout = 10000)
 	public void cookieShouldBeReturned() throws IOException, InterruptedException {
@@ -39,17 +41,17 @@ public class CookieTest extends ReonTestCase {
 
 		// when
 		LocalSocket clientSocket = new LocalSocket();
-		clientSocket.connect(new LocalSocketAddress("doesn't matter now"));
-		OutputStream os = clientSocket.getOutputStream();
-		os.write(GET_1.getBytes());
-		os.close();
+		clientSocket.connect(new LocalSocketAddress("test"));
+		HttpClient client = new HttpClient(new LocalSocketConnection(clientSocket));
+		Response response = client.send(GET_1);
 
 		// then
-		InputStream is = clientSocket.getInputStream();
-		String response = IOUtils.toString(is);
 		System.out.println("response: " + response);
 		String expectedBody = "Set-Cookie: COOKIE_NAME=cookieValuecookieValue";
-		assertThat(response, containsString(expectedBody));
+		assertThat(response.getHeaders().toString(), containsString(expectedBody));
+
+		client.close();
+		service.onDestroy();
 	}
 
 	@Test(timeout = 10000)
@@ -61,16 +63,16 @@ public class CookieTest extends ReonTestCase {
 
 		// when
 		LocalSocket clientSocket = new LocalSocket();
-		clientSocket.connect(new LocalSocketAddress("doesn't matter now"));
-		OutputStream os = clientSocket.getOutputStream();
-		os.write(GET_2.getBytes());
-		os.close();
+		clientSocket.connect(new LocalSocketAddress("test"));
+		HttpClient client = new HttpClient(new LocalSocketConnection(clientSocket));
+		Response response = client.send(GET_2);
 
 		// then
-		InputStream is = clientSocket.getInputStream();
-		String response = IOUtils.toString(is);
 		System.out.println("response: " + response);
 		String expectedBody = "cookieValuecookieValue";
-		assertThat(response, containsString(expectedBody));
+		assertThat(response.getBodyAsString(), containsString(expectedBody));
+
+		client.close();
+		service.onDestroy();
 	}
 }

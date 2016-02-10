@@ -5,84 +5,96 @@ import android.content.Intent;
 import android.net.LocalSocket;
 import android.net.LocalSocketAddress;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import io.reon.LocalSocketConnection;
+import io.reon.concurrent.ListenableFuture;
+import io.reon.http.AsyncHttpClient;
+import io.reon.http.Cookie;
+import io.reon.http.HttpClient;
+import io.reon.http.Request;
+import io.reon.http.RequestBuilder;
+import io.reon.http.Response;
 import io.reon.test.support.ReonTestCase;
 import io.reon.Service;
 
 import static org.hamcrest.core.StringContains.containsString;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 
 public class WowFirstWorkingTest extends ReonTestCase {
 
-	public static final String GET_1 =
-			"GET /test HTTP/1.1\r\n" +
-			"Host: localhost\r\n" +
-			"Connection: close\r\n\r\n";
+	public static final Request GET_1 = RequestBuilder
+			.get("/test")
+			.withHost("localhost")
+			.withClose()
+			.build();
 
 	public static final String POST_BODY = "id=11&name=somename";
-	public static final String POST_1 =
-			"POST /testpost HTTP/1.1\r\n" +
-			"Host: localhost\r\n" +
-			"Content-length: "+POST_BODY.length()+"\r\n\r\n" +
-			POST_BODY;
+	public static final Request POST_1 = RequestBuilder
+			.post("/testpost")
+			.withHost("localhost")
+			.withBody(POST_BODY)
+			.withClose()
+			.build();
 
-	public static final String GET_LONG_1 =
-			"GET /test HTTP/1.1\r\n" +
-			"Cookie: cookieName=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+
-			"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+
-			"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+
-			"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+
-			"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+
-			"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"+
-			"\r\n" +
-			"Host: localhost\r\n" +
-			"Connection: Keep-Alive\r\n\r\n";
+	public static final Request GET_LONG_1 = RequestBuilder
+			.get("/test")
+			.withHost("localhost")
+			.withCookie(new Cookie("cookieName", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+					+ "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+					+ "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+					+ "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+					+ "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+					+ "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+			))
+			.withKeepAlive()
+			.build();
 
-	@Test(timeout = 10000)
-	public void simplestGet() throws IOException, InterruptedException {
+	@Test(timeout = 1000)
+	public void simplestGet() throws Exception {
 		// given
 		Service service = startService();
 
 		// when
 		LocalSocket clientSocket = new LocalSocket();
-		clientSocket.connect(new LocalSocketAddress("doesn't matter now"));
-		OutputStream os = clientSocket.getOutputStream();
-		os.write(GET_1.getBytes());
-		os.close();
+		clientSocket.connect(new LocalSocketAddress("test"));
+		HttpClient client = new HttpClient(new LocalSocketConnection(clientSocket));
+		Response response = client.send(GET_1);
 
 		// then
-		InputStream is = clientSocket.getInputStream();
-		String response = IOUtils.toString(is);
 		System.out.println("response: " + response);
 		String expectedBody = new Test1().test();
-		assertThat(response, containsString(expectedBody));
+		assertThat(response.getBodyAsString(), containsString(expectedBody));
+
+		// clean up
+		client.close();
+		service.onDestroy();
 	}
 
-	@Test(timeout = 10000)
-	public void simplestPost() throws IOException, InterruptedException {
+	@Test(timeout = 1000)
+	public void simplestPost() throws Exception {
 		// given
 		Service service = startService();
 
 		// when
 		LocalSocket clientSocket = new LocalSocket();
-		clientSocket.connect(new LocalSocketAddress("doesn't matter now"));
-		OutputStream os = clientSocket.getOutputStream();
-		os.write(POST_1.getBytes());
-		os.close();
+		clientSocket.connect(new LocalSocketAddress("test"));
+		HttpClient client = new HttpClient(new LocalSocketConnection(clientSocket));
+		Response response = client.send(POST_1);
 
 		// then
-		InputStream is = clientSocket.getInputStream();
-		String response = IOUtils.toString(is);
 		System.out.println("response: " + response);
 		String expectedBody = new TestPost().post(11, "somename");
-		assertThat(response, containsString(expectedBody));
+		assertThat(response.getBodyAsString(), containsString(expectedBody));
+
+		// clean up
+		client.close();
+		service.onDestroy();
 	}
 
 	private Service startService() {
@@ -92,24 +104,34 @@ public class WowFirstWorkingTest extends ReonTestCase {
 		return service;
 	}
 
-	@Test(timeout = 10000)
-	public void shouldParseLongGetRequests() throws IOException {
+	@Test(timeout = 1000)
+	public void shouldParseLongGetRequests() throws Exception {
 		// given
 		Service service = startService();
+		ExecutorService executor = Executors.newSingleThreadExecutor();
 
 		// when
 		LocalSocket clientSocket = new LocalSocket();
-		clientSocket.connect(new LocalSocketAddress("doesn't matter now"));
-		OutputStream os = clientSocket.getOutputStream();
-		os.write(GET_LONG_1.getBytes()); // two long requests
-		os.write(GET_LONG_1.getBytes());
-		os.close();
+		clientSocket.connect(new LocalSocketAddress("test"));
+		AsyncHttpClient client = new AsyncHttpClient(new LocalSocketConnection(clientSocket), executor);
+		ListenableFuture<Response> responseFuture1 = client.send(GET_LONG_1);
+		ListenableFuture<Response> responseFuture2 = client.send(GET_LONG_1);
 
 		// then
-		InputStream is = clientSocket.getInputStream();
-		String response = IOUtils.toString(is);
+		Response response = responseFuture1.get();
 		System.out.println("response: " + response);
+		assertTrue(response.isOK());
 		String expectedBody = new Test1().test();
-		assertThat(response, containsString(expectedBody));
+		assertThat(response.getBodyAsString(), containsString(expectedBody));
+
+		response = responseFuture2.get();
+		System.out.println("response: " + response);
+		assertTrue(response.isOK());
+		assertThat(response.getBodyAsString(), containsString(expectedBody));
+
+		// clean up
+		client.close();
+		executor.shutdown();
+		service.onDestroy();
 	}
 }
