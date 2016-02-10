@@ -1,17 +1,18 @@
 package io.reon.test.support;
 
-import android.net.LocalSocket;
-
 import java.io.*;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
+import io.reon.net.Connection;
 
 
 public class LocalWire {
 
 	private static volatile LocalWire instance;
 
-	private BlockingQueue<LocalSocket> socketsToAccept = new LinkedBlockingQueue<LocalSocket>();
+	private BlockingQueue<Connection> serviceQueue = new ArrayBlockingQueue<>(8);
 
 	public static LocalWire getInstance() {
 		synchronized (LocalWire.class) {
@@ -22,39 +23,64 @@ public class LocalWire {
 		}
 	}
 
-	public ClientsSideStreams connect() throws IOException {
-		PipedInputStream clientsInputStream = new PipedInputStream();
+	public BlockingQueue<Connection> getServiceQueue() {
+		return serviceQueue;
+	}
+
+	public Connection connect() throws IOException {
 		PipedOutputStream serversOutputStream = new PipedOutputStream();
-		clientsInputStream.connect(serversOutputStream);
+		PipedInputStream clientsInputStream = new PipedInputStream(serversOutputStream);
 
-		PipedInputStream serversInputStream = new PipedInputStream();
 		PipedOutputStream clientsOutputStream = new PipedOutputStream();
-		serversInputStream.connect(clientsOutputStream);
+		PipedInputStream serversInputStream = new PipedInputStream(clientsOutputStream);
 
-		socketsToAccept.add(new LocalSocket(serversInputStream, serversOutputStream));
+		serviceQueue.offer(new WiredConnection(serversInputStream, serversOutputStream));
 
-		return new ClientsSideStreams(clientsInputStream, clientsOutputStream);
+		return new WiredConnection(clientsInputStream, clientsOutputStream);
 	}
 
-	public LocalSocket waitForConnection() throws InterruptedException {
-		return socketsToAccept.take();
+	public Connection waitForConnection() throws InterruptedException {
+		Connection c = serviceQueue.poll(10, TimeUnit.SECONDS);
+		if (c == null) {
+			throw new InterruptedException("Timeout");
+		}
+		return c;
 	}
 
-	public class ClientsSideStreams {
+	public class WiredConnection implements Connection {
+
 		private final InputStream inputStream;
 		private final OutputStream outputStream;
+		private boolean closed = false;
 
-		ClientsSideStreams(InputStream is, OutputStream os) {
-			this.inputStream = is;
-			this.outputStream = os;
+		public WiredConnection(InputStream inputStream, OutputStream outputStream) {
+			this.inputStream = inputStream;
+			this.outputStream = outputStream;
 		}
 
-		public OutputStream getOutputStream() {
+		@Override
+		public InputStream getInputStream() throws IOException {
+			return inputStream;
+		}
+
+		@Override
+		public OutputStream getOutputStream() throws IOException {
 			return outputStream;
 		}
 
-		public InputStream getInputStream() {
-			return inputStream;
+		@Override
+		public boolean isClosed() {
+			return closed;
+		}
+
+		@Override
+		public void close() throws IOException {
+			if (!closed) {
+				inputStream.close();
+				outputStream.close();
+				closed = true;
+			}
 		}
 	}
+
 }

@@ -1,30 +1,37 @@
 package android.net;
 
-import io.reon.test.support.LocalWire;
+import java.io.FileDescriptor;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
-import java.io.*;
+import io.reon.net.Connection;
+import io.reon.test.support.LocalWire;
 
 public class LocalSocket {
 
-	private InputStream inputStream;
-
-	private OutputStream outputStream;
+	private Connection conn;
 
 	public LocalSocket() {
-		this(null, null);
+
 	}
 
-	public LocalSocket(InputStream inputStream, OutputStream outputStream) {
-		this.inputStream = inputStream;
-		this.outputStream = outputStream;
+	LocalSocket(Connection conn) {
+		this.conn =  conn;
 	}
 
 	public OutputStream getOutputStream() throws IOException {
-		return outputStream;
+		if (conn != null) {
+			return conn.getOutputStream();
+		}
+		return null;
 	}
 
 	public InputStream getInputStream() throws IOException {
-		return inputStream;
+		if (conn != null) {
+			return conn.getInputStream();
+		}
+		return null;
 	}
 
 	public FileDescriptor getFileDescriptor() {
@@ -32,21 +39,22 @@ public class LocalSocket {
     }
 
 	public void shutdownOutput() throws IOException {
-
+		if (conn != null) {
+			conn.getOutputStream().close();
+		}
 	}
 
 	public void close() throws IOException {
-		inputStream.close();
-		outputStream.close();
+		if (conn != null) {
+			conn.close();
+		}
 	}
 
 	public int getSendBufferSize() throws IOException {
-		return 1111;
+		return 1024;
 	}
 
 	public void connect(LocalSocketAddress localSocketAddress) throws IOException {
-		LocalWire.ClientsSideStreams clientsSideStreams = LocalWire.getInstance().connect();
-		inputStream = clientsSideStreams.getInputStream();
-		outputStream = clientsSideStreams.getOutputStream();
+		conn = LocalWire.getInstance().connect();
 	}
 }
