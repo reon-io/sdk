@@ -40,6 +40,10 @@ public class MessageBuilder<T extends Message> {
 		return withUpdatedHeader(Headers.RESPONSE.CONNECTION, "keep-alive");
 	}
 
+	public MessageBuilder<T> withClose() {
+		return withUpdatedHeader(Headers.RESPONSE.CONNECTION, "close");
+	}
+
 	public MessageBuilder<T> withContentType(String contentType) {
 		return withUpdatedHeader(Headers.RESPONSE.CONTENT_TYPE, contentType);
 	}

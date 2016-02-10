@@ -3,9 +3,7 @@ package io.reon.http;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
@@ -32,7 +30,7 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder error(HttpException ex) {
-		return startWith(ex.getStatusCode()).withClose();
+		return (ResponseBuilder) startWith(ex.getStatusCode()).withClose();
 	}
 
 	public static ResponseBuilder methodNotAllowed() {
@@ -44,11 +42,11 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 	}
 
 	public static ResponseBuilder serviceUnavailable() {
-		return startWith(StatusCode.SERVICE_UNAVAILABLE).withClose();
+		return (ResponseBuilder) startWith(StatusCode.SERVICE_UNAVAILABLE).withClose();
 	}
 
 	public static ResponseBuilder internalError(Exception e) {
-		return startWith(StatusCode.INTERNAL_ERROR).withClose();
+		return (ResponseBuilder) startWith(StatusCode.INTERNAL_ERROR).withClose();
 	}
 
 	public static ResponseBuilder forbidden() {
@@ -70,10 +68,6 @@ public class ResponseBuilder extends MessageBuilder<Response> {
 
 	public ResponseBuilder withKeepAlive() {
 		return (ResponseBuilder) super.withKeepAlive();
-	}
-
-	public ResponseBuilder withClose() {
-		return (ResponseBuilder) withUpdatedHeader(Headers.RESPONSE.CONNECTION, "close");
 	}
 
 	public ResponseBuilder withCookie(Cookie cookie) {
