@@ -24,11 +24,13 @@ public class WebBinder extends Binder {
 
 	private static final String LOG_TAG = WebBinder.class.getSimpleName();
 
+	private static final int SO_TIMEOUT = 30000;
+
 	private final IBinder delegate;
 	private final String host;
 	private final String prefix;
 	private final TokenAuth token;
-	private final HttpClient client;
+	private HttpClient client;
 	private final HashSet<DeathRecipient> deathRecipients;
 	private boolean alive;
 
@@ -37,10 +39,15 @@ public class WebBinder extends Binder {
 		this.host = host;
 		this.prefix = prefix;
 		this.token = token;
+		deathRecipients = new HashSet<>(4);
+		connect();
+	}
+
+	private void connect() throws IOException {
 		LocalSocket ls = new LocalSocket();
 		ls.connect(new LocalSocketAddress(HttpClient.DEFAULT_SERVER_ADDR));
+		ls.setSoTimeout(SO_TIMEOUT);
 		client = new HttpClient(new LocalSocketConnection(ls));
-		deathRecipients = new HashSet<>(4);
 		alive = true;
 	}
 
@@ -116,7 +123,13 @@ public class WebBinder extends Binder {
 
 	@Override
 	protected boolean onTransact(int opcode, Parcel req, Parcel resp, int flags) throws RemoteException {
-		if(!alive) throw new DeadObjectException();
+		if(!alive) {
+			try {
+				connect();
+			} catch (IOException e) {
+				throw new DeadObjectException();
+			}
+		}
 		try {
 			Response response = client.send(RequestBuilder
 					.post(prefix + "/transact/" + opcode + "/" + flags)
