@@ -76,7 +76,7 @@ public class WowFirstWorkingTest extends ReonTestCase {
 		service.onDestroy();
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout = 5000)
 	public void simplestPost() throws Exception {
 		// given
 		Service service = startService();
@@ -104,7 +104,7 @@ public class WowFirstWorkingTest extends ReonTestCase {
 		return service;
 	}
 
-	@Test(timeout = 1000)
+	@Test(timeout = 5000)
 	public void shouldParseLongGetRequests() throws Exception {
 		// given
 		Service service = startService();
